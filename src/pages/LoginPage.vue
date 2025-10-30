@@ -7,8 +7,10 @@
         <!-- Imagem superior -->
         <div class="q-mb-lg">
           <div class="relative-position">
-            <q-img src="https://placekitten.com/800/400" alt="Imagem de login"
+            <!-- imagem local importada -->
+            <q-img :src="pets" alt="Imagem de login"
               style="border-radius: 50% 50% 0 0; height: 180px; object-fit: cover" />
+
             <q-avatar size="64px" class="absolute-center shadow-3" style="top: 140px; transform: translateY(-50%)">
               <q-icon name="mdi-paw" size="40px" color="green-6" />
             </q-avatar>
@@ -21,6 +23,7 @@
           <q-btn round flat color="blue-8" icon="mdi-facebook" />
           <q-btn round flat color="grey-8" icon="mdi-twitter" />
         </div>
+
 
         <div class="text-grey q-mb-md">Faça login para continuar</div>
 
@@ -43,6 +46,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import pets from 'src/assets/pets.png'
 const username = ref('')
 const password = ref('')
 </script>
