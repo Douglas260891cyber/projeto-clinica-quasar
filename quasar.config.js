@@ -100,6 +100,8 @@ export default defineConfig((ctx) => {
       plugins: ['Notify'],
     },
 
+    plugins: ['Pinia', 'axios'],
+
     // animations: 'all', // --- includes all animations
     // https://v2.quasar.dev/options/animations
     animations: [],
