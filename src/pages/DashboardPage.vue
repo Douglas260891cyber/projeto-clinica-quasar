@@ -28,8 +28,10 @@
             <q-item-section>Consultas</q-item-section>
           </q-item>
 
-          <q-item clickable v-ripple class="menu-item">
-            <q-item-section avatar><q-icon name="vaccines" /></q-item-section>
+          <q-item clickable v-ripple class="menu-item" to="/vacinas">
+            <q-item-section avatar>
+              <q-icon name="vaccines" />
+            </q-item-section>
             <q-item-section>Vacinas</q-item-section>
           </q-item>
 

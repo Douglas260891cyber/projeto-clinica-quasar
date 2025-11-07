@@ -6,7 +6,7 @@ export const vacinaService = {
     return response.data
   },
 
-  async criarVacina(dados) {
+  async agendarVacina(dados) {
     const response = await api.post('/vacinas', dados)
     return response.data
   },
