@@ -9,8 +9,8 @@
     <q-form @submit="salvarVacina" class="q-gutter-md">
 
       <q-card-section>
-        <q-select filled v-model="form.pet" :options="pets" label="Pet *" option-label="nome" option-value="id"
-          emit-value map-options color="green-7" />
+        <q-input filled v-model="form.pet" :options="pets" label="Pet" option-label="nome" option-value="id" emit-value
+          map-options color="green-7" />
       </q-card-section>
 
       <q-card-section>
@@ -26,13 +26,11 @@
       </q-card-section>
 
       <q-card-section>
-        <q-select filled v-model="form.local" :options="locais" label="Local *" color="green-7"
-          :rules="[val => !!val || 'Campo obrigatório']" />
+        <q-input filled v-model="form.local" :options="locais" label="Local *" color="green-7" />
       </q-card-section>
 
       <q-card-section>
-        <q-select filled v-model="form.veterinario" :options="veterinarios" label="Veterinário(a) *" color="green-7"
-          :rules="[val => !!val || 'Campo obrigatório']" />
+        <q-input filled v-model="form.veterinario" :options="veterinarios" label="Veterinário(a)" color="green-7" />
       </q-card-section>
 
       <q-card-section>
@@ -50,38 +48,51 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useQuasar } from 'quasar'
-import { vacinaService } from 'src/services/vacinaService'
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { useQuasar } from "quasar";
+import { api } from "src/services/api";
 
-const $q = useQuasar()
+const $q = useQuasar();
+const router = useRouter();
 
+// Formulário reativo
 const form = ref({
-  pet: null,
-  data: '',
-  horario: '',
-  local: '',
-  veterinario: '',
-  observacao: ''
-})
+  pet: "",
+  data: "",
+  horario: "",
+  local: "",
+  veterinario: "",
+  observacao: ""
+});
 
-// Essas opções viriam de uma API (exemplo fixo por enquanto)
-const pets = ref([
-  { id: 1, nome: 'Zeus' },
-  { id: 2, nome: 'Luna' }
-])
-
-const locais = ref(['Clínica Central', 'Pet Center', 'VetLife'])
-const veterinarios = ref(['Dra. Júlia', 'Dr. Carlos', 'Dra. Fernanda'])
-
+// ENVIAR PARA JSON SERVER
 async function salvarVacina() {
   try {
-    await vacinaService.agendarVacina(form.value)
-    $q.notify({ type: 'positive', message: 'Vacina cadastrada com sucesso!' })
-    $q.router.back()
+    const payload = {
+      pet: form.value.pet,
+      data: form.value.data,
+      horario: form.value.horario,
+      local: form.value.local,
+      veterinario: form.value.veterinario,
+      observacao: form.value.observacao
+    };
+
+    await api.post("/vacinas", payload);
+
+    $q.notify({
+      type: "positive",
+      message: "Vacina salva com sucesso!"
+    });
+
+    router.push("/dashboard");
   } catch (error) {
-    console.error(error)
-    $q.notify({ type: 'negative', message: 'Erro ao salvar vacina.' })
+    console.error(error);
+
+    $q.notify({
+      type: "negative",
+      message: "Erro ao salvar a vacina."
+    });
   }
 }
 </script>
