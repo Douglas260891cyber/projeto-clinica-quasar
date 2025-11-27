@@ -60,13 +60,12 @@
               </div>
             </q-card>
 
-            <!-- EVENTOS SEMANA -->
+            <!-- EVENTOS DA SEMANA -->
             <q-card class="q-mb-md bg-white q-pa-md">
               <div class="text-h6 q-mb-sm">Próximos eventos da semana</div>
               <div class="row q-col-gutter-sm">
 
                 <q-card v-for="(dia, i) in diasSemana" :key="i" class="col bg-grey-1 q-pa-sm">
-
                   <div class="text-center text-weight-bold q-mb-sm">{{ dia }}</div>
 
                   <div v-for="ev in eventosPorDia(dia)" :key="ev.id"
@@ -75,24 +74,24 @@
                       <q-icon name="vaccines" size="14px" class="q-mr-xs" />
                       Vacina
                     </q-badge>
+
                     <div><b>Pet:</b> {{ ev.pet }}</div>
                     <div><b>Veterinário(a):</b> {{ ev.veterinario }}</div>
                     <div><b>Local:</b> {{ ev.local }}</div>
-                    <div><b>Hora:</b> {{ ev.horario }}</div>
+                    <div><b>Data/hora:</b> {{ ev.data }}, {{ ev.horario }}</div>
 
                     <div class="row justify-end q-mt-sm">
                       <q-btn icon="edit" color="green-7" flat @click="$router.push(`/vacinas/editar/${ev.id}`)" />
                       <q-btn flat dense size="sm" icon="delete" color="negative" class="q-ml-sm"
                         @click="deletarVacina(ev.id)" />
                     </div>
-
                   </div>
 
                   <div v-if="eventosPorDia(dia).length === 0" class="text-grey text-center text-caption">
                     Sem eventos
                   </div>
-
                 </q-card>
+
               </div>
             </q-card>
 
@@ -125,15 +124,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useVacinasStore } from "src/stores/vacinasStore";
 import { useQuasar } from "quasar";
 import Chart from "chart.js/auto";
 
 const drawerOpen = ref(true);
 
+// Dias da semana
 const diasSemana = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira"];
 
+// Data atual formatada
 const hoje = new Date();
 const dataAtual = ref(
   hoje.toLocaleDateString("pt-BR", {
@@ -148,28 +149,41 @@ const dataAtual = ref(
 const store = useVacinasStore();
 const $q = useQuasar();
 
+// Refs para instâncias dos gráficos
+const barChartInstance = ref(null);
+const pieChartInstance = ref(null);
+
+// Atualiza gráficos automaticamente quando a semana muda
+watch(
+  () => store.semana,
+  () => {
+    criarGraficos();
+  },
+  { deep: true }
+);
+
+// Carrega dados ao montar
 onMounted(() => {
   store.carregarSemana();
-  setTimeout(criarGraficos, 600); // espera carregar os dados
+  setTimeout(criarGraficos, 600);
 });
 
-// EVENTOS POR DIA
 const eventosPorDia = (diaNome) => {
-  const map = {
-    "Segunda-feira": 1,
-    "Terça-feira": 2,
-    "Quarta-feira": 3,
-    "Quinta-feira": 4,
-    "Sexta-feira": 5
-  };
+  // diasSemana está em ordem: ["Segunda-feira", "Terça-feira", ...]
+  const diaIndex = diasSemana.indexOf(diaNome); // 0 = Segunda, 1 = Terça, ...
+  if (diaIndex === -1) return [];
 
   return store.semana.filter(ev => {
-    const data = new Date(ev.data + "T00:00:00");
-    return data.getDay() === map[diaNome];
+    if (!ev?.data) return false;
+
+    const data = new Date(ev.data + "T12:00:00"); // evita shift por timezone
+    // converte getDay (0=Dom,1=Seg...) para index onde 0=Segunda
+    const weekdayIndex = (data.getDay() + 6) % 7; // 0=Segunda .. 6=Domingo
+    return weekdayIndex === diaIndex;
   });
 };
 
-// CRIAR GRÁFICOS
+// Criar / Atualizar gráficos
 function criarGraficos() {
   const pets = {};
   store.semana.forEach(ev => {
@@ -180,8 +194,12 @@ function criarGraficos() {
   const labels = Object.keys(pets);
   const values = Object.values(pets);
 
+  // destruir gráficos antigos
+  if (barChartInstance.value) barChartInstance.value.destroy();
+  if (pieChartInstance.value) pieChartInstance.value.destroy();
+
   // BARRAS
-  new Chart(document.getElementById("barChart"), {
+  barChartInstance.value = new Chart(document.getElementById("barChart"), {
     type: "bar",
     data: {
       labels,
@@ -195,7 +213,7 @@ function criarGraficos() {
   });
 
   // PIZZA
-  new Chart(document.getElementById("pieChart"), {
+  pieChartInstance.value = new Chart(document.getElementById("pieChart"), {
     type: "pie",
     data: {
       labels,

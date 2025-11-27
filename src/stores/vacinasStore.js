@@ -32,16 +32,27 @@ export const useVacinasStore = defineStore('vacinas', {
     },
 
     filtrarSemana() {
+      // Recebe uma referência para hoje e calcula segunda (inicio) e domingo (fim)
       const hoje = new Date()
+      // dayIndex: 0 => segunda, 1 => terça, ..., 6 => domingo
+      const dayIndex = (hoje.getDay() + 6) % 7
       const inicio = new Date(hoje)
-      inicio.setDate(hoje.getDate() - hoje.getDay() + 1)
+      inicio.setDate(hoje.getDate() - dayIndex)
+      inicio.setHours(0, 0, 0, 0)
 
       const fim = new Date(inicio)
       fim.setDate(inicio.getDate() + 6)
+      fim.setHours(23, 59, 59, 999)
 
+      // Normaliza e filtra comparando timestamps
       this.semana = this.lista.filter((ev) => {
-        const dataEv = new Date(ev.data)
-        return dataEv >= inicio && dataEv <= fim
+        if (!ev?.data) return false
+
+        // garante parsing sem problemas de fuso (trata 'YYYY-MM-DD' como local)
+        // se seus dados já tiverem timezone, adapte conforme necessário
+        const dataEv = new Date(ev.data + 'T12:00:00') // meio-dia evita cross-day por timezone
+        const ts = dataEv.getTime()
+        return ts >= inicio.getTime() && ts <= fim.getTime()
       })
     },
 
