@@ -4,7 +4,7 @@
 
       <div class="drawer-center">
         <q-avatar size="150px" class="q-mb-md">
-          <img src="src/assets/user.jpg" alt="User" />
+          <img src="src/assets/ops.jpeg" alt="User" />
         </q-avatar>
 
         <div class="user-info">
@@ -69,7 +69,6 @@
 
                   <div class="text-center text-weight-bold q-mb-sm">{{ dia }}</div>
 
-                  <!-- EVENTOS DO DIA -->
                   <div v-for="ev in eventosPorDia(dia)" :key="ev.id"
                     class="q-pa-sm bg-white q-mb-sm rounded-borders shadow-1">
                     <q-badge color="red" text-color="white" class="q-mb-sm flex items-center">
@@ -77,23 +76,18 @@
                       Vacina
                     </q-badge>
                     <div><b>Pet:</b> {{ ev.pet }}</div>
+                    <div><b>Veterinário(a):</b> {{ ev.veterinario }}</div>
                     <div><b>Local:</b> {{ ev.local }}</div>
                     <div><b>Hora:</b> {{ ev.horario }}</div>
 
-                    <!-- BOTÕES -->
                     <div class="row justify-end q-mt-sm">
-
-                      <!-- EDITAR -->
                       <q-btn icon="edit" color="green-7" flat @click="$router.push(`/vacinas/editar/${ev.id}`)" />
-
-                      <!-- DELETAR -->
                       <q-btn flat dense size="sm" icon="delete" color="negative" class="q-ml-sm"
                         @click="deletarVacina(ev.id)" />
                     </div>
 
                   </div>
 
-                  <!-- SEM EVENTOS -->
                   <div v-if="eventosPorDia(dia).length === 0" class="text-grey text-center text-caption">
                     Sem eventos
                   </div>
@@ -108,19 +102,19 @@
               <div class="bg-grey-3" style="height: 100px; border-radius: 6px;"></div>
             </q-card>
 
-            <!-- RESUMO / HISTÓRICO / VACINA
-            <div class="row q-col-gutter-md">
-              <q-card class="col bg-white q-pa-md">
-                <div class="text-subtitle1">Resumo</div>
-              </q-card>
-              <q-card class="col bg-white q-pa-md">
-                <div class="text-subtitle1">Histórico</div>
-              </q-card>
-              <q-card class="col bg-white q-pa-md">
-                <div class="text-subtitle1">Agendar vacina</div>
-              </q-card>
-            </div>
-            -->
+            <!-- GRÁFICOS -->
+            <q-card class="q-mb-md bg-white q-pa-md">
+              <div class="text-h6 q-mb-md">Gráficos de Vacinas</div>
+
+              <div class="row q-col-gutter-md">
+                <div class="col-12 col-md-6">
+                  <canvas id="barChart"></canvas>
+                </div>
+                <div class="col-12 col-md-6">
+                  <canvas id="pieChart"></canvas>
+                </div>
+              </div>
+            </q-card>
 
           </div>
         </div>
@@ -134,19 +128,12 @@
 import { ref, onMounted } from "vue";
 import { useVacinasStore } from "src/stores/vacinasStore";
 import { useQuasar } from "quasar";
+import Chart from "chart.js/auto";
 
 const drawerOpen = ref(true);
 
-// Dias da semana
-const diasSemana = [
-  "Segunda-feira",
-  "Terça-feira",
-  "Quarta-feira",
-  "Quinta-feira",
-  "Sexta-feira"
-];
+const diasSemana = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira"];
 
-// Data atual formatada
 const hoje = new Date();
 const dataAtual = ref(
   hoje.toLocaleDateString("pt-BR", {
@@ -161,12 +148,12 @@ const dataAtual = ref(
 const store = useVacinasStore();
 const $q = useQuasar();
 
-// Carrega as vacinas da semana ao abrir o Dashboard
 onMounted(() => {
   store.carregarSemana();
+  setTimeout(criarGraficos, 600); // espera carregar os dados
 });
 
-// Filtra os eventos por dia da semana
+// EVENTOS POR DIA
 const eventosPorDia = (diaNome) => {
   const map = {
     "Segunda-feira": 1,
@@ -182,10 +169,47 @@ const eventosPorDia = (diaNome) => {
   });
 };
 
+// CRIAR GRÁFICOS
+function criarGraficos() {
+  const pets = {};
+  store.semana.forEach(ev => {
+    if (!pets[ev.pet]) pets[ev.pet] = 0;
+    pets[ev.pet]++;
+  });
+
+  const labels = Object.keys(pets);
+  const values = Object.values(pets);
+
+  // BARRAS
+  new Chart(document.getElementById("barChart"), {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        label: "Vacinas por Pet",
+        data: values,
+        backgroundColor: ["#4caf50", "#8bc34a", "#cddc39"]
+      }]
+    },
+    options: { responsive: true }
+  });
+
+  // PIZZA
+  new Chart(document.getElementById("pieChart"), {
+    type: "pie",
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: ["#4caf50", "#8bc34a", "#cddc39"]
+      }]
+    },
+    options: { responsive: true }
+  });
+}
+
 // DELETAR
 function deletarVacina(id) {
-  console.log("Quasar:", $q);
-
   $q.dialog({
     title: "Excluir vacina",
     message: "Tem certeza que deseja excluir?",
@@ -211,13 +235,10 @@ function deletarVacina(id) {
   width: 100%;
   min-height: 100vh;
   text-align: center;
+  margin-top: 30px;
 }
 
 .user-info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
   margin-bottom: 20px;
 }
 
@@ -248,8 +269,6 @@ function deletarVacina(id) {
   align-items: center;
   padding: 16px;
   gap: 16px;
-  width: 100%;
-  height: 100%;
   background-color: #a3c77b;
 }
 

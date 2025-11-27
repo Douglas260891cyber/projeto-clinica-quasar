@@ -1,49 +1,59 @@
 <template>
   <q-card class="q-pa-md bg-white shadow-2 rounded-borders">
 
-    <q-card-section class="text-h5 text-green-7 q-mb-md">
+    <q-card-section class="text-h5 text-green-7 q-mb-md flex items-center">
       <q-btn flat round icon="arrow_back" @click="$router.back()" color="green-7" />
-      {{ isEdit ? "Editar Vacina" : "Agendar Vacina" }}
+      <span class="q-ml-sm">{{ isEdit ? "Editar Vacina" : "Nova Vacina" }}</span>
     </q-card-section>
 
     <q-form @submit="salvarVacina" class="q-gutter-md">
 
+      <!-- PET -->
       <q-card-section>
-        <q-input filled v-model="form.pet" label="Pet" color="green-7" />
+        <q-input filled v-model="form.pet" label="Pet *" color="green-7"
+          :rules="[val => !!val || 'Campo obrigatório']" />
       </q-card-section>
 
+      <!-- DATA E HORÁRIO -->
       <q-card-section>
         <div class="row q-col-gutter-md">
           <div class="col">
             <q-input filled v-model="form.data" type="date" label="Data *" color="green-7"
               :rules="[val => !!val || 'Campo obrigatório']" />
           </div>
+
           <div class="col">
             <q-input filled v-model="form.horario" type="time" label="Horário" color="green-7" />
           </div>
         </div>
       </q-card-section>
 
+      <!-- LOCAL -->
       <q-card-section>
-        <q-select filled v-model="form.local" :options="locais" label="Local *" color="green-7" />
+        <q-select filled v-model="form.local" :options="locais" label="Local da aplicação *" color="green-7"
+          :rules="[val => !!val || 'Campo obrigatório']" />
       </q-card-section>
 
+      <!-- VETERINÁRIO -->
       <q-card-section>
-        <q-select filled v-model="form.veterinario" :options="veterinarios" label="Veterinário(a)" color="green-7" />
+        <q-select filled v-model="form.veterinario" :options="veterinarios" label="Veterinário(a) responsável"
+          color="green-7" />
       </q-card-section>
 
+      <!-- OBSERVAÇÃO -->
       <q-card-section>
         <q-input filled v-model="form.observacao" label="Observação" type="textarea" color="green-7" />
       </q-card-section>
 
+      <!-- BOTÕES -->
       <q-card-section class="row justify-between q-mt-md">
-        <q-btn label="Cancelar" color="grey-6" flat @click="$router.back()" />
+        <q-btn label="Cancelar" color="grey-7" flat @click="$router.back()" />
         <q-btn label="Confirmar" color="green-7" type="submit" />
       </q-card-section>
 
     </q-form>
-  </q-card>
 
+  </q-card>
 </template>
 
 <script setup>
@@ -56,10 +66,29 @@ const $q = useQuasar();
 const router = useRouter();
 const route = useRoute();
 
-// Verifica se está em modo edição
+// --------------------------
+//  OPÇÕES FICTÍCIAS
+// --------------------------
+const locais = [
+  "Clínica Central",
+  "Unidade Norte",
+  "Unidade Sul",
+  "HospVet Municipal",
+  "Posto Veterinário São José"
+];
+
+const veterinarios = [
+  "Dr. Ricardo Silva",
+  "Dra. Ana Paula Mendes",
+  "Dr. Júlio Carrara",
+  "Dra. Beatriz Nunes",
+  "Dr. Marcos Torres"
+];
+
+// Verifica se está editando
 const isEdit = computed(() => !!route.params.id);
 
-// Formulário reativo
+// Formulário
 const form = ref({
   pet: "",
   data: "",
@@ -69,77 +98,37 @@ const form = ref({
   observacao: ""
 });
 
-// Lista ficticia
-const locais = [
-  "Clínica Central",
-  "Unidade Norte",
-  "Unidade Sul",
-  "Posto Veterinário São José"
-];
-
-const veterinarios = [
-  "Dr. Ricardo Silva",
-  "Dra. Ana Paula Mendes",
-  "Dr. Júlio Carrara",
-  "Dra. Beatriz Nunes",
-];
-
-
-// Carrega dados da vacina ao editar
+// Carregar dados ao editar
 onMounted(async () => {
-  if (!isEdit.value) return;
+  if (isEdit.value) {
+    try {
+      const resp = await api.get(`/vacinas/${route.params.id}`);
+      form.value = resp.data;
+    } catch (e) {
+      console.error(e)
+      $q.notify({ type: "negative", message: "Erro ao carregar vacina." })
+    }
 
-  try {
-    const { data } = await api.get(`/vacinas/${route.params.id}`);
-
-    // Garante que apenas campos existentes sejam preenchidos
-    Object.assign(form.value, {
-      pet: data.pet ?? "",
-      data: formatarData(data.data),
-      horario: data.horario ?? "",
-      local: data.local ?? "",
-      veterinario: data.veterinario ?? "",
-      observacao: data.observacao ?? ""
-    });
-
-  } catch (e) {
-    console.error(e);
-    $q.notify({ type: "negative", message: "Erro ao carregar a vacina." });
   }
 });
 
-// Função para garantir compatibilidade com <q-input type="date">
-function formatarData(d) {
-  if (!d) return "";
-  // Se já estiver no formato yyyy-mm-dd, retorna direto
-  if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
-  // Tenta converter para iso
-  const obj = new Date(d);
-  if (isNaN(obj)) return "";
-  return obj.toISOString().substring(0, 10);
-}
-
-// Criar ou atualizar vacina
+// Criar ou atualizar
 async function salvarVacina() {
   try {
     if (isEdit.value) {
       await api.put(`/vacinas/${route.params.id}`, form.value);
       $q.notify({ type: "positive", message: "Vacina atualizada!" });
-
     } else {
       await api.post("/vacinas", form.value);
       $q.notify({ type: "positive", message: "Vacina cadastrada!" });
     }
 
     router.push("/dashboard");
-
-  } catch (error) {
-    console.error(error);
-    $q.notify({
-      type: "negative",
-      message: "Erro ao salvar a vacina."
-    });
+  } catch (e) {
+    console.error(e)
+    $q.notify({ type: "negative", message: "Erro ao carregar vacina." })
   }
+
 }
 </script>
 
