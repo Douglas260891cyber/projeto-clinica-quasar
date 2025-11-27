@@ -5,6 +5,7 @@ export const useVacinasStore = defineStore('vacinas', {
   state: () => ({
     lista: [], // todas vacinas
     semana: [], // vacinas da semana
+    selecionada: null, // para edição (opcional)
   }),
 
   actions: {
@@ -47,6 +48,45 @@ export const useVacinasStore = defineStore('vacinas', {
     async carregarSemana() {
       await this.carregarVacinas()
       this.filtrarSemana()
+    },
+
+    async deletarVacina(id) {
+      try {
+        await axios.delete(`http://localhost:3000/vacinas/${id}`)
+
+        // remove da lista
+        this.lista = this.lista.filter((ev) => ev.id !== id)
+
+        // recalcula semana
+        this.filtrarSemana()
+      } catch (err) {
+        console.error('Erro ao deletar vacina:', err)
+      }
+    },
+
+    selecionarParaEdicao(vacina) {
+      this.selecionada = { ...vacina } // cópia para formulário
+    },
+
+    async salvarEdicao() {
+      if (!this.selecionada?.id) return
+
+      try {
+        const { id } = this.selecionada
+
+        await axios.put(`http://localhost:3000/vacinas/${id}`, this.selecionada)
+
+        // atualiza a lista local
+        const index = this.lista.findIndex((v) => v.id === id)
+        if (index !== -1) {
+          this.lista[index] = { ...this.selecionada }
+        }
+
+        this.filtrarSemana()
+        this.selecionada = null
+      } catch (err) {
+        console.error('Erro ao salvar edição:', err)
+      }
     },
   },
 })

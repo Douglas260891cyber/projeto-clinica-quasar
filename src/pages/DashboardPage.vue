@@ -66,6 +66,7 @@
               <div class="row q-col-gutter-sm">
 
                 <q-card v-for="(dia, i) in diasSemana" :key="i" class="col bg-grey-1 q-pa-sm">
+
                   <div class="text-center text-weight-bold q-mb-sm">{{ dia }}</div>
 
                   <!-- EVENTOS DO DIA -->
@@ -74,6 +75,18 @@
                     <div><b>Pet:</b> {{ ev.pet }}</div>
                     <div><b>Local:</b> {{ ev.local }}</div>
                     <div><b>Hora:</b> {{ ev.horario }}</div>
+
+                    <!-- BOTÕES -->
+                    <div class="row justify-end q-mt-sm">
+
+                      <!-- EDITAR -->
+                      <q-btn flat dense size="sm" icon="edit" color="primary" @click="editarVacina(ev)" />
+
+                      <!-- DELETAR -->
+                      <q-btn flat dense size="sm" icon="delete" color="negative" class="q-ml-sm"
+                        @click="deletarVacina(ev.id)" />
+                    </div>
+
                   </div>
 
                   <!-- SEM EVENTOS -->
@@ -82,7 +95,6 @@
                   </div>
 
                 </q-card>
-
               </div>
             </q-card>
 
@@ -116,6 +128,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useVacinasStore } from "src/stores/vacinasStore";
+import { useQuasar } from "quasar";
 
 const drawerOpen = ref(true);
 
@@ -140,11 +153,12 @@ const dataAtual = ref(
 );
 
 // STORE
-const vacinas = useVacinasStore();
+const store = useVacinasStore();
+const $q = useQuasar();
 
 // Carrega as vacinas da semana ao abrir o Dashboard
 onMounted(() => {
-  vacinas.carregarSemana();
+  store.carregarSemana();
 });
 
 // Filtra os eventos por dia da semana
@@ -157,11 +171,34 @@ const eventosPorDia = (diaNome) => {
     "Sexta-feira": 5
   };
 
-  return vacinas.semana.filter(ev => {
-    const data = new Date(ev.data);
+  return store.semana.filter(ev => {
+    const data = new Date(ev.data + "T00:00:00");
     return data.getDay() === map[diaNome];
   });
 };
+
+// EDITAR
+function editarVacina(ev) {
+  store.selecionarParaEdicao(ev);
+
+  $q.dialog({
+    title: "Editar vacina",
+    message: "Abrir modal com formulário aqui.",
+    ok: true
+  });
+}
+
+// DELETAR
+function deletarVacina(id) {
+  console.log("Quasar:", $q);
+
+  $q.dialog({
+    title: "Excluir vacina",
+    message: "Tem certeza que deseja excluir?",
+    cancel: true,
+    persistent: true
+  }).onOk(() => store.deletarVacina(id));
+}
 </script>
 
 <style scoped>
