@@ -53,10 +53,8 @@ export const useVacinasStore = defineStore('vacinas', {
     async deletarVacina(id) {
       try {
         await axios.delete(`http://localhost:3000/vacinas/${id}`)
-
         // remove da lista
         this.lista = this.lista.filter((ev) => ev.id !== id)
-
         // recalcula semana
         this.filtrarSemana()
       } catch (err) {

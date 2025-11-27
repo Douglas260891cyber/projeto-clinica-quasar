@@ -10,9 +10,15 @@ const routes = [
   },
 
   {
-    path: '/vacinas',
+    path: '/vacinas/nova',
     component: () => import('pages/VacinaPage.vue'),
   },
+
+  {
+    path: '/vacinas/editar/:id',
+    component: () => import('pages/VacinaPage.vue'),
+  },
+
   // Always leave this as last one,
   // but you can also remove it
   {

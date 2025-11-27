@@ -28,11 +28,11 @@
             <q-item-section>Consultas</q-item-section>
           </q-item>
 
-          <q-item clickable v-ripple class="menu-item" to="/vacinas">
+          <q-item clickable v-ripple class="menu-item" to="/vacinas/nova">
             <q-item-section avatar>
               <q-icon name="vaccines" />
             </q-item-section>
-            <q-item-section>Vacinas</q-item-section>
+            <q-item-section>Agendar vacinas</q-item-section>
           </q-item>
 
           <q-item clickable v-ripple class="menu-item">
@@ -72,6 +72,10 @@
                   <!-- EVENTOS DO DIA -->
                   <div v-for="ev in eventosPorDia(dia)" :key="ev.id"
                     class="q-pa-sm bg-white q-mb-sm rounded-borders shadow-1">
+                    <q-badge color="red" text-color="white" class="q-mb-sm flex items-center">
+                      <q-icon name="vaccines" size="14px" class="q-mr-xs" />
+                      Vacina
+                    </q-badge>
                     <div><b>Pet:</b> {{ ev.pet }}</div>
                     <div><b>Local:</b> {{ ev.local }}</div>
                     <div><b>Hora:</b> {{ ev.horario }}</div>
@@ -80,7 +84,7 @@
                     <div class="row justify-end q-mt-sm">
 
                       <!-- EDITAR -->
-                      <q-btn flat dense size="sm" icon="edit" color="primary" @click="editarVacina(ev)" />
+                      <q-btn icon="edit" color="green-7" flat @click="$router.push(`/vacinas/editar/${ev.id}`)" />
 
                       <!-- DELETAR -->
                       <q-btn flat dense size="sm" icon="delete" color="negative" class="q-ml-sm"
@@ -104,7 +108,7 @@
               <div class="bg-grey-3" style="height: 100px; border-radius: 6px;"></div>
             </q-card>
 
-            <!-- RESUMO / HISTÓRICO / VACINA -->
+            <!-- RESUMO / HISTÓRICO / VACINA
             <div class="row q-col-gutter-md">
               <q-card class="col bg-white q-pa-md">
                 <div class="text-subtitle1">Resumo</div>
@@ -113,9 +117,10 @@
                 <div class="text-subtitle1">Histórico</div>
               </q-card>
               <q-card class="col bg-white q-pa-md">
-                <div class="text-subtitle1">Vacina</div>
+                <div class="text-subtitle1">Agendar vacina</div>
               </q-card>
             </div>
+            -->
 
           </div>
         </div>
@@ -176,17 +181,6 @@ const eventosPorDia = (diaNome) => {
     return data.getDay() === map[diaNome];
   });
 };
-
-// EDITAR
-function editarVacina(ev) {
-  store.selecionarParaEdicao(ev);
-
-  $q.dialog({
-    title: "Editar vacina",
-    message: "Abrir modal com formulário aqui.",
-    ok: true
-  });
-}
 
 // DELETAR
 function deletarVacina(id) {

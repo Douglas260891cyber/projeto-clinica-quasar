@@ -3,14 +3,13 @@
 
     <q-card-section class="text-h5 text-green-7 q-mb-md">
       <q-btn flat round icon="arrow_back" @click="$router.back()" color="green-7" />
-      Vacina
+      {{ isEdit ? "Editar Vacina" : "Agendar Vacina" }}
     </q-card-section>
 
     <q-form @submit="salvarVacina" class="q-gutter-md">
 
       <q-card-section>
-        <q-input filled v-model="form.pet" :options="pets" label="Pet" option-label="nome" option-value="id" emit-value
-          map-options color="green-7" />
+        <q-input filled v-model="form.pet" label="Pet" color="green-7" />
       </q-card-section>
 
       <q-card-section>
@@ -26,11 +25,11 @@
       </q-card-section>
 
       <q-card-section>
-        <q-input filled v-model="form.local" :options="locais" label="Local *" color="green-7" />
+        <q-select filled v-model="form.local" :options="locais" label="Local *" color="green-7" />
       </q-card-section>
 
       <q-card-section>
-        <q-input filled v-model="form.veterinario" :options="veterinarios" label="Veterinário(a)" color="green-7" />
+        <q-select filled v-model="form.veterinario" :options="veterinarios" label="Veterinário(a)" color="green-7" />
       </q-card-section>
 
       <q-card-section>
@@ -48,13 +47,17 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { ref, onMounted, computed } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import { useQuasar } from "quasar";
 import { api } from "src/services/api";
 
 const $q = useQuasar();
 const router = useRouter();
+const route = useRoute();
+
+// Verifica se está em modo edição
+const isEdit = computed(() => !!route.params.id);
 
 // Formulário reativo
 const form = ref({
@@ -66,29 +69,72 @@ const form = ref({
   observacao: ""
 });
 
-// ENVIAR PARA JSON SERVER
-async function salvarVacina() {
+// Lista ficticia
+const locais = [
+  "Clínica Central",
+  "Unidade Norte",
+  "Unidade Sul",
+  "Posto Veterinário São José"
+];
+
+const veterinarios = [
+  "Dr. Ricardo Silva",
+  "Dra. Ana Paula Mendes",
+  "Dr. Júlio Carrara",
+  "Dra. Beatriz Nunes",
+];
+
+
+// Carrega dados da vacina ao editar
+onMounted(async () => {
+  if (!isEdit.value) return;
+
   try {
-    const payload = {
-      pet: form.value.pet,
-      data: form.value.data,
-      horario: form.value.horario,
-      local: form.value.local,
-      veterinario: form.value.veterinario,
-      observacao: form.value.observacao
-    };
+    const { data } = await api.get(`/vacinas/${route.params.id}`);
 
-    await api.post("/vacinas", payload);
-
-    $q.notify({
-      type: "positive",
-      message: "Vacina salva com sucesso!"
+    // Garante que apenas campos existentes sejam preenchidos
+    Object.assign(form.value, {
+      pet: data.pet ?? "",
+      data: formatarData(data.data),
+      horario: data.horario ?? "",
+      local: data.local ?? "",
+      veterinario: data.veterinario ?? "",
+      observacao: data.observacao ?? ""
     });
 
+  } catch (e) {
+    console.error(e);
+    $q.notify({ type: "negative", message: "Erro ao carregar a vacina." });
+  }
+});
+
+// Função para garantir compatibilidade com <q-input type="date">
+function formatarData(d) {
+  if (!d) return "";
+  // Se já estiver no formato yyyy-mm-dd, retorna direto
+  if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+  // Tenta converter para iso
+  const obj = new Date(d);
+  if (isNaN(obj)) return "";
+  return obj.toISOString().substring(0, 10);
+}
+
+// Criar ou atualizar vacina
+async function salvarVacina() {
+  try {
+    if (isEdit.value) {
+      await api.put(`/vacinas/${route.params.id}`, form.value);
+      $q.notify({ type: "positive", message: "Vacina atualizada!" });
+
+    } else {
+      await api.post("/vacinas", form.value);
+      $q.notify({ type: "positive", message: "Vacina cadastrada!" });
+    }
+
     router.push("/dashboard");
+
   } catch (error) {
     console.error(error);
-
     $q.notify({
       type: "negative",
       message: "Erro ao salvar a vacina."
