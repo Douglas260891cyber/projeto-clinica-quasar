@@ -1,43 +1,29 @@
-# TCC (projeto-clinica)
+# Projeto Clínica Quasar
 
-A Quasar Project
+Este projeto foi reorganizado em dois módulos principais:
 
-## Install the dependencies
+- frontend/: aplicação Quasar/Vue
+- backend/: API Node.js/Express com PostgreSQL
+
+## Como executar
+
+### Frontend
 
 ```bash
-yarn
-# or
+npm --prefix frontend install
+npm run dev:frontend
+```
+
+### Backend
+
+```bash
 npm install
+npm run dev:backend
 ```
 
-### Start the app in development mode (hot-code reloading, error reporting, etc.)
+## Estrutura
 
-```bash
-quasar dev
+```text
+backend/
+frontend/
 ```
-
-### Lint the files
-
-```bash
-yarn lint
-# or
-npm run lint
-```
-
-### Format the files
-
-```bash
-yarn format
-# or
-npm run format
-```
-
-### Build the app for production
-
-```bash
-quasar build
-```
-
-### Customize the configuration
-
-See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).
