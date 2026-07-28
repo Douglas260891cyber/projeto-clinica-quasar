@@ -1,4 +1,4 @@
-# Quasar App (projeto-clinica-quasar)
+# TCC (projeto-clinica)
 
 A Quasar Project
 
