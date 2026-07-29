@@ -5,6 +5,11 @@ const routes = [
   },
 
   {
+    path: '/register',
+    component: () => import('pages/RegisterPage.vue'),
+  },
+
+  {
     path: '/dashboard',
     component: () => import('pages/DashboardPage.vue'),
   },

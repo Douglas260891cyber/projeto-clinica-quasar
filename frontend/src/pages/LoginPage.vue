@@ -30,7 +30,7 @@
             <div class="text-grey q-mb-md">Faça login para continuar</div>
 
             <!-- Campos de login -->
-            <q-input filled v-model="username" label="Usuário" class="q-mb-md" dense />
+            <q-input filled v-model="email" label="E-mail" type="email" class="q-mb-md" dense />
             <q-input filled v-model="password" label="Senha" type="password" dense>
               <template v-slot:after>
                 <q-btn flat dense no-caps class="text-caption text-primary">
@@ -39,8 +39,11 @@
               </template>
             </q-input>
 
-            <!-- Botão Entrar -->
-            <q-btn label="Entrar" color="green-6" class="full-width q-mt-lg" unelevated @click="login" />
+            <!-- Botões -->
+            <q-btn label="Entrar" color="green-6" class="full-width q-mt-lg" unelevated :loading="loading" @click="login" />
+            <q-btn flat class="full-width q-mt-sm text-green-7" @click="goToRegister">
+              Criar conta
+            </q-btn>
           </q-card>
         </div>
 
@@ -54,27 +57,51 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Notify } from 'quasar'
+import { api } from 'src/services/api'
 import pets from 'src/assets/pets.png'
 
-const username = ref('')
+const email = ref('')
 const password = ref('')
 const router = useRouter()
+const loading = ref(false)
 
-const login = () => {
-  if (username.value === 'admin' && password.value === '123') {
+const login = async () => {
+  if (!email.value || !password.value) {
+    Notify.create({
+      message: 'Preencha e-mail e senha para entrar.',
+      color: 'orange',
+      icon: 'warning',
+    })
+    return
+  }
+
+  loading.value = true
+  try {
+    await api.post('/auth/login', {
+      email: email.value,
+      password: password.value,
+    })
+
     Notify.create({
       message: 'Login realizado com sucesso!',
       color: 'green',
       icon: 'check',
     })
-    router.push('/dashboard') // redireciona para a página Dashboard
-  } else {
+    router.push('/dashboard')
+  } catch (error) {
+    const message = error?.response?.data?.message || 'Usuário ou senha incorretos!'
     Notify.create({
-      message: 'Usuário ou senha incorretos!',
+      message,
       color: 'red',
       icon: 'error',
     })
+  } finally {
+    loading.value = false
   }
+}
+
+const goToRegister = () => {
+  router.push('/register')
 }
 </script>
 
