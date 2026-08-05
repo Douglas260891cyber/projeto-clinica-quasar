@@ -1,3 +1,4 @@
+// Arquivo principal do backend. Inicializa o Express, configura as rotas e sobe o servidor.
 import express from 'express';
 import path from 'path';
 import dotenv from 'dotenv';
@@ -10,6 +11,7 @@ const app = express();
 
 app.use(express.json());
 
+// Habilita o CORS para permitir requisições do frontend para a API.
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
@@ -20,8 +22,10 @@ app.use((req, res, next) => {
   next();
 });
 
+// Registra as rotas da API sob o prefixo /api.
 app.use('/api', routes);
 
+// Retorna um status simples para confirmar que o serviço está ativo.
 app.get('/health', (_req, res) => {
   res.json({
     status: 'ok',
@@ -31,6 +35,7 @@ app.get('/health', (_req, res) => {
 
 const port = process.env.PORT || 3000;
 
+// Inicia o servidor e tenta validar a conexão com o banco antes de aceitar requisições.
 const startServer = async () => {
   try {
     await initDatabase();

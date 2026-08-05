@@ -1,5 +1,7 @@
+// Controlador responsável por receber as requisições de autenticação e repassar para o serviço.
 import { createUser, findUserByEmail, verifyPassword } from '../services/authService.js';
 
+// Cadastra um novo usuário no sistema.
 export const registerUser = async (req, res) => {
   try {
     const { name, email, password, cpf, date_of_birth } = req.body;
@@ -22,6 +24,7 @@ export const registerUser = async (req, res) => {
   }
 };
 
+// Valida as credenciais do usuário e retorna sucesso ou erro de autenticação.
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;

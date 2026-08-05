@@ -1,0 +1,6 @@
+(node:34715) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/douglas/%C3%81rea%20de%20trabalho/projeto-clinica-quasar/backend/src/config/database.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /home/douglas/Área de trabalho/projeto-clinica-quasar/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"id":1,"name":"Teste","email":"teste4@example.com","cpf":"555.666.777-88","date_of_birth":"2000-04-04"}
+[{"id":1,"name":"Teste","email":"teste4@example.com","cpf":"555.666.777-88","date_of_birth":"2000-04-04","password_hash":"hash","created_at":"2026-08-04T00:04:35.726Z"}]

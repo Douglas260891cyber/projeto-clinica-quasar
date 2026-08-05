@@ -40,7 +40,8 @@
             </q-input>
 
             <!-- Botões -->
-            <q-btn label="Entrar" color="green-6" class="full-width q-mt-lg" unelevated :loading="loading" @click="login" />
+            <q-btn label="Entrar" color="green-6" class="full-width q-mt-lg" unelevated :loading="loading"
+              @click="login" />
             <q-btn flat class="full-width q-mt-sm text-green-7" @click="goToRegister">
               Criar conta
             </q-btn>
@@ -54,6 +55,7 @@
 </template>
 
 <script setup>
+// Página de login do frontend. Recebe e-mail e senha e autentica o usuário.
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Notify } from 'quasar'
@@ -65,6 +67,7 @@ const password = ref('')
 const router = useRouter()
 const loading = ref(false)
 
+// Envia as credenciais para a API e navega para o dashboard em caso de sucesso.
 const login = async () => {
   if (!email.value || !password.value) {
     Notify.create({
@@ -74,7 +77,6 @@ const login = async () => {
     })
     return
   }
-
   loading.value = true
   try {
     await api.post('/auth/login', {
@@ -100,6 +102,7 @@ const login = async () => {
   }
 }
 
+// Direciona o usuário para a tela de cadastro.
 const goToRegister = () => {
   router.push('/register')
 }

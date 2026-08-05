@@ -3,8 +3,12 @@ import { createI18n } from 'vue-i18n'
 import messages from 'src/i18n'
 
 export default defineBoot(({ app }) => {
+  // Detectar idioma do navegador ou usar pt-BR por padrão
+  const browserLocale = navigator.language || navigator.userLanguage || 'pt-BR'
+  const locale = messages[browserLocale] ? browserLocale : messages['pt-BR'] ? 'pt-BR' : 'en-US'
+
   const i18n = createI18n({
-    locale: 'en-US',
+    locale: locale,
     globalInjection: true,
     messages,
   })

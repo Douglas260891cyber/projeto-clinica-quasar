@@ -1,5 +1,7 @@
+// Controlador responsável pelas operações de pets recebidas pela API.
 import { createPet, listPets } from '../services/petService.js';
 
+// Busca e retorna todos os pets cadastrados.
 export const getPets = async (_req, res) => {
     try {
         const pets = await listPets();
@@ -10,6 +12,7 @@ export const getPets = async (_req, res) => {
     }
 };
 
+// Cria um novo pet com os dados recebidos na requisição.
 export const createPetController = async (req, res) => {
     try {
         const { name, species, age, description } = req.body;

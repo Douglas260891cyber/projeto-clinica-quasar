@@ -1,7 +1,7 @@
 import { defineBoot } from '#q-app/wrappers'
 import axios from 'axios'
 
-const api = axios.create({ baseURL: 'https://meu-servidor.com/api' })
+const api = axios.create({ baseURL: 'http://localhost:3000/api' })
 
 export default defineBoot(({ app }) => {
   app.config.globalProperties.$axios = axios

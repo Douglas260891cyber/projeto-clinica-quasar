@@ -13,11 +13,16 @@
             </div>
 
             <q-form @submit.prevent="register" class="q-gutter-md">
-              <q-input filled v-model="form.name" label="Nome completo" dense :rules="[val => !!val || 'Campo obrigatório']" />
-              <q-input filled v-model="form.cpf" label="CPF" dense mask="###.###.###-##" :rules="[val => !!val || 'Campo obrigatório']" />
-              <q-input filled v-model="form.date_of_birth" label="Data de nascimento" type="date" dense :rules="[val => !!val || 'Campo obrigatório']" />
-              <q-input filled v-model="form.email" label="E-mail" type="email" dense :rules="[val => !!val || 'Campo obrigatório']" />
-              <q-input filled v-model="form.password" label="Senha" type="password" dense :rules="[val => !!val || 'Campo obrigatório']" />
+              <q-input filled v-model="form.name" label="Nome completo" dense
+                :rules="[val => !!val || 'Campo obrigatório']" />
+              <q-input filled v-model="form.cpf" label="CPF" dense mask="###.###.###-##"
+                :rules="[val => !!val || 'Campo obrigatório']" />
+              <q-input filled v-model="form.date_of_birth" label="Data de nascimento" type="date" dense
+                :rules="[val => !!val || 'Campo obrigatório']" />
+              <q-input filled v-model="form.email" label="E-mail" type="email" dense
+                :rules="[val => !!val || 'Campo obrigatório']" />
+              <q-input filled v-model="form.password" label="Senha" type="password" dense
+                :rules="[val => !!val || 'Campo obrigatório']" />
 
               <q-btn label="Cadastrar" color="green-6" class="full-width" unelevated type="submit" :loading="loading" />
               <q-btn flat class="full-width text-green-7" @click="goToLogin">
@@ -32,6 +37,7 @@
 </template>
 
 <script setup>
+// Página de cadastro do frontend. Coleta os dados do usuário e envia para o backend.
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Notify } from 'quasar'
@@ -47,6 +53,7 @@ const form = reactive({
   password: ''
 })
 
+// Envia os dados de cadastro para a API e redireciona para a tela de login.
 const register = async () => {
   if (!form.name || !form.cpf || !form.date_of_birth || !form.email || !form.password) {
     Notify.create({
@@ -85,6 +92,7 @@ const register = async () => {
   }
 }
 
+// Volta para a tela de login.
 const goToLogin = () => {
   router.push('/')
 }
