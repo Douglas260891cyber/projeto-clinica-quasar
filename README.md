@@ -6,7 +6,7 @@ Sistema web para apoiar a gestão de uma clínica veterinária. A aplicação re
 
 ## Demonstração
 
-Adicione aqui capturas da tela de login e do dashboard para apresentar o projeto visualmente no GitHub.
+Adicionr capturas da tela de login e do dashboard...
 
 ## Funcionalidades
 
