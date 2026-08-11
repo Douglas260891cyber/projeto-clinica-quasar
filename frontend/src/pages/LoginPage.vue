@@ -30,10 +30,10 @@
             <div class="text-grey q-mb-md">Faça login para continuar</div>
 
             <!-- O q-form permite enviar tanto pelo botão quanto pela tecla Enter. -->
-            <q-form @submit="login">
+            <q-form @submit="entrar">
               <q-input filled v-model="email" label="E-mail" type="email" class="q-mb-md" dense
                 :rules="[val => !!val || 'Informe o e-mail']" />
-              <q-input filled v-model="password" label="Senha" type="password" dense
+              <q-input filled v-model="senha" label="Senha" type="password" dense
                 :rules="[val => !!val || 'Informe a senha']">
                 <template v-slot:after>
                   <q-btn flat dense no-caps class="text-caption text-primary">
@@ -43,8 +43,8 @@
               </q-input>
 
               <q-btn label="Entrar" color="green-6" class="full-width q-mt-lg" unelevated type="submit"
-                :loading="loading" />
-              <q-btn flat class="full-width q-mt-sm text-green-7" @click="goToRegister">
+                :loading="carregando" />
+              <q-btn flat class="full-width q-mt-sm text-green-7" @click="irParaCadastro">
                 Criar conta
               </q-btn>
             </q-form>
@@ -63,17 +63,17 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Notify } from 'quasar'
 import { api } from 'src/services/api'
-import { saveAuthenticatedUser } from 'src/services/auth'
+import { salvarUsuarioAutenticado } from 'src/services/auth'
 import pets from 'src/assets/pets.png'
 
 const email = ref('')
-const password = ref('')
+const senha = ref('')
 const router = useRouter()
-const loading = ref(false)
+const carregando = ref(false)
 
 // Envia as credenciais para a API e navega para o dashboard em caso de sucesso.
-const login = async () => {
-  if (!email.value || !password.value) {
+const entrar = async () => {
+  if (!email.value || !senha.value) {
     Notify.create({
       message: 'Preencha e-mail e senha para entrar.',
       color: 'orange',
@@ -81,15 +81,15 @@ const login = async () => {
     })
     return
   }
-  loading.value = true
+  carregando.value = true
   try {
-    const { data } = await api.post('/auth/login', {
+    const { data: dados } = await api.post('/autenticacao/entrar', {
       email: email.value,
-      password: password.value,
+      senha: senha.value,
     })
 
     // A sessão só é criada depois que a API confirma e devolve o usuário autenticado.
-    saveAuthenticatedUser(data.user)
+    salvarUsuarioAutenticado(dados.usuario)
 
     Notify.create({
       message: 'Login realizado com sucesso!',
@@ -98,20 +98,20 @@ const login = async () => {
     })
     // replace evita voltar à tela de login pelo botão "voltar" do navegador.
     router.replace('/dashboard')
-  } catch (error) {
-    const message = error?.response?.data?.message || 'Usuário ou senha incorretos!'
+  } catch (erro) {
+    const mensagem = erro?.response?.data?.mensagem || 'Usuário ou senha incorretos!'
     Notify.create({
-      message,
+      message: mensagem,
       color: 'red',
       icon: 'error',
     })
   } finally {
-    loading.value = false
+    carregando.value = false
   }
 }
 
 // Direciona o usuário para a tela de cadastro.
-const goToRegister = () => {
+const irParaCadastro = () => {
   router.push('/register')
 }
 </script>

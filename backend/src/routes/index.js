@@ -1,10 +1,10 @@
 import express from 'express';
-import authRoutes from './authRoutes.js';
-import petRoutes from './petRoutes.js';
+import rotasAutenticacao from './authRoutes.js';
+import rotasAnimais from './petRoutes.js';
 
-const router = express.Router();
+const roteador = express.Router();
 
-router.use('/auth', authRoutes);
-router.use('/pets', petRoutes);
+roteador.use('/autenticacao', rotasAutenticacao);
+roteador.use('/animais', rotasAnimais);
 
-export default router;
+export default roteador;

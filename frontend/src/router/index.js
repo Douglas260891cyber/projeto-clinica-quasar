@@ -6,7 +6,7 @@ import {
   createWebHashHistory,
 } from 'vue-router'
 import routes from './routes'
-import { isAuthenticated } from 'src/services/auth'
+import { estaAutenticado } from 'src/services/auth'
 
 export default defineRouter(function (/* { store, ssrContext } */) {
   const createHistory = process.env.SERVER
@@ -24,7 +24,7 @@ export default defineRouter(function (/* { store, ssrContext } */) {
 
   // Impede que uma URL protegida seja aberta sem um login confirmado nesta sessão.
   Router.beforeEach((to) => {
-    if (to.meta.requiresAuth && !isAuthenticated()) {
+    if (to.meta.requiresAuth && !estaAutenticado()) {
       return { path: '/', query: { redirect: to.fullPath } }
     }
   })

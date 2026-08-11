@@ -120,10 +120,10 @@ DB_PASSWORD=sua_senha_aqui
 
 | Método | Rota | Descrição |
 | --- | --- | --- |
-| POST | `/api/auth/register` | Cria uma conta de usuário |
-| POST | `/api/auth/login` | Autentica o usuário |
-| GET | `/api/pets` | Lista os pets cadastrados |
-| POST | `/api/pets` | Cadastra um pet |
+| POST | `/api/autenticacao/cadastro` | Cria uma conta de usuário |
+| POST | `/api/autenticacao/entrar` | Autentica o usuário |
+| GET | `/api/animais` | Lista os animais cadastrados |
+| POST | `/api/animais` | Cadastra um animal |
 
 ## Próximas melhorias
 

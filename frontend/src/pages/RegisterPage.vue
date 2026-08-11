@@ -12,20 +12,20 @@
               <div class="text-grey">Preencha seus dados para se cadastrar.</div>
             </div>
 
-            <q-form @submit.prevent="register" class="q-gutter-md">
-              <q-input filled v-model="form.name" label="Nome completo" dense
+            <q-form @submit.prevent="cadastrar" class="q-gutter-md">
+              <q-input filled v-model="form.nome" label="Nome completo" dense
                 :rules="[val => !!val || 'Campo obrigatório']" />
-              <q-input filled v-model="form.cpf" label="CPF" dense mask="###.###.###-##"
+              <q-input filled v-model="formulario.cpf" label="CPF" dense mask="###.###.###-##"
                 :rules="[val => !!val || 'Campo obrigatório']" />
-              <q-input filled v-model="form.date_of_birth" label="Data de nascimento" type="date" dense
+              <q-input filled v-model="formulario.data_nascimento" label="Data de nascimento" type="date" dense
                 :rules="[val => !!val || 'Campo obrigatório']" />
-              <q-input filled v-model="form.email" label="E-mail" type="email" dense
+              <q-input filled v-model="formulario.email" label="E-mail" type="email" dense
                 :rules="[val => !!val || 'Campo obrigatório']" />
-              <q-input filled v-model="form.password" label="Senha" type="password" dense
+              <q-input filled v-model="formulario.senha" label="Senha" type="password" dense
                 :rules="[val => !!val || 'Campo obrigatório']" />
 
-              <q-btn label="Cadastrar" color="green-6" class="full-width" unelevated type="submit" :loading="loading" />
-              <q-btn flat class="full-width text-green-7" @click="goToLogin">
+              <q-btn label="Cadastrar" color="green-6" class="full-width" unelevated type="submit" :loading="carregando" />
+              <q-btn flat class="full-width text-green-7" @click="irParaLogin">
                 Já tenho conta
               </q-btn>
             </q-form>
@@ -44,18 +44,18 @@ import { Notify } from 'quasar'
 import { api } from 'src/services/api'
 
 const router = useRouter()
-const loading = ref(false)
-const form = reactive({
-  name: '',
+const carregando = ref(false)
+const formulario = reactive({
+  nome: '',
   cpf: '',
-  date_of_birth: '',
+  data_nascimento: '',
   email: '',
-  password: ''
+  senha: ''
 })
 
 // Envia os dados de cadastro para a API e redireciona para a tela de login.
-const register = async () => {
-  if (!form.name || !form.cpf || !form.date_of_birth || !form.email || !form.password) {
+const cadastrar = async () => {
+  if (!formulario.nome || !formulario.cpf || !formulario.data_nascimento || !formulario.email || !formulario.senha) {
     Notify.create({
       message: 'Preencha todos os campos para continuar.',
       color: 'orange',
@@ -64,14 +64,14 @@ const register = async () => {
     return
   }
 
-  loading.value = true
+  carregando.value = true
   try {
-    await api.post('/auth/register', {
-      name: form.name,
-      cpf: form.cpf,
-      date_of_birth: form.date_of_birth,
-      email: form.email,
-      password: form.password
+    await api.post('/autenticacao/cadastro', {
+      nome: formulario.nome,
+      cpf: formulario.cpf,
+      data_nascimento: formulario.data_nascimento,
+      email: formulario.email,
+      senha: formulario.senha
     })
 
     Notify.create({
@@ -80,20 +80,20 @@ const register = async () => {
       icon: 'check'
     })
     router.push('/')
-  } catch (error) {
-    const message = error?.response?.data?.message || 'Erro ao cadastrar usuário.'
+  } catch (erro) {
+    const mensagem = erro?.response?.data?.mensagem || 'Erro ao cadastrar usuário.'
     Notify.create({
-      message,
+      message: mensagem,
       color: 'red',
       icon: 'error'
     })
   } finally {
-    loading.value = false
+    carregando.value = false
   }
 }
 
 // Volta para a tela de login.
-const goToLogin = () => {
+const irParaLogin = () => {
   router.push('/')
 }
 </script>

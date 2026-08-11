@@ -1,9 +1,9 @@
 import express from 'express';
-import { getPets, createPetController } from '../controllers/petController.js';
+import { obterAnimais, cadastrarAnimal } from '../controllers/petController.js';
 
-const router = express.Router();
+const roteador = express.Router();
 
-router.get('/', getPets);
-router.post('/', createPetController);
+roteador.get('/', obterAnimais);
+roteador.post('/', cadastrarAnimal);
 
-export default router;
+export default roteador;

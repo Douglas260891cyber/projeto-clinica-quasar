@@ -15,7 +15,7 @@
     <q-drawer v-model="drawerOpen" show-if-above width="250" bordered class="bg-green-7 text-white">
       <div class="drawer-content q-pa-md">
         <q-avatar size="82px" class="bg-white text-green-8 q-mb-sm">{{ iniciaisUsuario }}</q-avatar>
-        <div class="text-h6">{{ usuario.name || 'Usuário' }}</div>
+        <div class="text-h6">{{ usuario.nome || 'Usuário' }}</div>
         <div class="text-caption q-mb-lg text-green-1">{{ dataAtual }}</div>
 
         <q-list padding>
@@ -82,15 +82,15 @@
                 <q-btn flat color="green-8" label="Adicionar" icon="add" @click="abrirCadastroPet" />
               </q-card-section>
               <q-separator />
-              <q-card-section v-if="petDestaque" class="row items-center q-gutter-md">
+              <q-card-section v-if="animalDestaque" class="row items-center q-gutter-md">
                 <q-avatar size="82px" color="green-1" text-color="green-9" icon="pets" />
                 <div>
-                  <div class="text-h6">{{ petDestaque.name }}</div>
-                  <div class="text-grey-8">{{ petDestaque.species }}</div>
-                  <div v-if="petDestaque.age !== null && petDestaque.age !== undefined" class="text-caption">
-                    {{ petDestaque.age }} ano(s)
+                  <div class="text-h6">{{ animalDestaque.nome }}</div>
+                  <div class="text-grey-8">{{ animalDestaque.especie }}</div>
+                  <div v-if="animalDestaque.idade !== null && animalDestaque.idade !== undefined" class="text-caption">
+                    {{ animalDestaque.idade }} ano(s)
                   </div>
-                  <div v-if="petDestaque.description" class="text-caption text-grey-7">{{ petDestaque.description }}</div>
+                  <div v-if="animalDestaque.descricao" class="text-caption text-grey-7">{{ animalDestaque.descricao }}</div>
                 </div>
               </q-card-section>
               <q-card-section v-else class="text-center text-grey-7 q-py-xl">
@@ -176,10 +176,10 @@
         <q-card-section class="row items-center"><div class="text-h6">Cadastrar pet</div><q-space /><q-btn flat round icon="close" v-close-popup /></q-card-section>
         <q-form @submit="salvarPet">
           <q-card-section class="q-gutter-md">
-            <q-input v-model="novoPet.name" outlined label="Nome *" :rules="[val => !!val || 'Informe o nome']" />
-            <q-input v-model="novoPet.species" outlined label="Espécie *" :rules="[val => !!val || 'Informe a espécie']" />
-            <q-input v-model.number="novoPet.age" outlined label="Idade" type="number" min="0" />
-            <q-input v-model="novoPet.description" outlined label="Observações" type="textarea" />
+            <q-input v-model="novoAnimal.nome" outlined label="Nome *" :rules="[val => !!val || 'Informe o nome']" />
+            <q-input v-model="novoAnimal.especie" outlined label="Espécie *" :rules="[val => !!val || 'Informe a espécie']" />
+            <q-input v-model.number="novoAnimal.idade" outlined label="Idade" type="number" min="0" />
+            <q-input v-model="novoAnimal.descricao" outlined label="Observações" type="textarea" />
           </q-card-section>
           <q-card-actions align="right"><q-btn flat label="Cancelar" v-close-popup /><q-btn color="green-7" label="Salvar pet" type="submit" :loading="salvandoPet" /></q-card-actions>
         </q-form>
@@ -194,7 +194,7 @@ import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import Chart from 'chart.js/auto'
 import { api } from 'src/services/api'
-import { clearAuthenticatedUser, getAuthenticatedUser } from 'src/services/auth'
+import { limparUsuarioAutenticado, obterUsuarioAutenticado } from 'src/services/auth'
 import { useVacinasStore } from 'src/stores/vacinasStore'
 
 const router = useRouter()
@@ -204,19 +204,19 @@ const drawerOpen = ref(true)
 const cadastroPetAberto = ref(false)
 const salvandoPet = ref(false)
 const petSelecionado = ref(null)
-const pets = ref([])
+const animais = ref([])
 const barCanvas = ref(null)
 const pieCanvas = ref(null)
 const barChartInstance = ref(null)
 const pieChartInstance = ref(null)
-const usuario = getAuthenticatedUser() || {}
-const novoPet = reactive({ name: '', species: '', age: null, description: '' })
+const usuario = obterUsuarioAutenticado() || {}
+const novoAnimal = reactive({ nome: '', especie: '', idade: null, descricao: '' })
 const diasSemana = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira']
 
 const dataAtual = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).format(new Date())
-const primeiroNome = computed(() => usuario.name?.split(' ')[0] || 'usuário')
-const iniciaisUsuario = computed(() => (usuario.name || 'U').split(' ').map((nome) => nome[0]).slice(0, 2).join('').toUpperCase())
-const petDestaque = computed(() => pets.value[0] || null)
+const primeiroNome = computed(() => usuario.nome?.split(' ')[0] || 'usuário')
+const iniciaisUsuario = computed(() => (usuario.nome || 'U').split(' ').map((nome) => nome[0]).slice(0, 2).join('').toUpperCase())
+const animalDestaque = computed(() => animais.value[0] || null)
 const opcoesPets = computed(() => [...new Set(store.semana.map((evento) => evento.pet).filter(Boolean))])
 const eventosFiltrados = computed(() => store.semana.filter((evento) => !petSelecionado.value || evento.pet === petSelecionado.value))
 
@@ -234,14 +234,14 @@ const alertas = computed(() => {
 })
 
 const cardsResumo = computed(() => [
-  { label: 'Pets cadastrados', value: pets.value.length, icon: 'pets', color: 'green-7' },
+  { label: 'Pets cadastrados', value: animais.value.length, icon: 'pets', color: 'green-7' },
   { label: 'Vacinas nesta semana', value: store.semana.length, icon: 'vaccines', color: 'red-7' },
   { label: 'Próximos alertas', value: alertas.value.length, icon: 'notifications', color: 'orange-8' },
   { label: 'Eventos exibidos', value: eventosFiltrados.value.length, icon: 'event_available', color: 'blue-7' },
 ])
 
 onMounted(async () => {
-  await Promise.all([store.carregarSemana(), carregarPets()])
+  await Promise.all([store.carregarSemana(), carregarAnimais()])
   await nextTick()
   criarGraficos()
 })
@@ -257,13 +257,13 @@ onBeforeUnmount(() => {
   pieChartInstance.value?.destroy()
 })
 
-async function carregarPets() {
+async function carregarAnimais() {
   try {
-    const { data } = await api.get('/pets')
-    pets.value = data
-  } catch (error) {
-    // A tela continua utilizável se o backend de pets não estiver iniciado.
-    console.error('Erro ao carregar pets:', error)
+    const { data: dados } = await api.get('/animais')
+    animais.value = dados
+  } catch (erro) {
+    // A tela continua utilizável se o backend de animais não estiver iniciado.
+    console.error('Erro ao carregar animais:', erro)
   }
 }
 
@@ -298,13 +298,13 @@ function abrirCadastroPet() {
 async function salvarPet() {
   salvandoPet.value = true
   try {
-    const { data } = await api.post('/pets', novoPet)
-    pets.value.push(data.pet)
-    Object.assign(novoPet, { name: '', species: '', age: null, description: '' })
+    const { data: dados } = await api.post('/animais', novoAnimal)
+    animais.value.push(dados.animal)
+    Object.assign(novoAnimal, { nome: '', especie: '', idade: null, descricao: '' })
     cadastroPetAberto.value = false
     $q.notify({ type: 'positive', message: 'Pet cadastrado com sucesso!' })
-  } catch (error) {
-    $q.notify({ type: 'negative', message: error?.response?.data?.message || 'Não foi possível cadastrar o pet.' })
+  } catch (erro) {
+    $q.notify({ type: 'negative', message: erro?.response?.data?.mensagem || 'Não foi possível cadastrar o pet.' })
   } finally {
     salvandoPet.value = false
   }
@@ -323,7 +323,7 @@ function recursoEmBreve(nome) { $q.notify({ message: `${nome} estará disponíve
 
 function logout() {
   // A remoção da sessão faz a guarda do roteador bloquear novamente as páginas protegidas.
-  clearAuthenticatedUser()
+  limparUsuarioAutenticado()
   router.replace('/')
   $q.notify({ type: 'positive', message: 'Você saiu da conta.' })
 }

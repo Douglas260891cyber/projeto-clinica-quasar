@@ -1,26 +1,26 @@
 // Serviço responsável pela lógica de autenticação e persistência de usuários.
 import bcrypt from 'bcrypt';
-import { query } from '../config/database.js';
+import { executarConsulta } from '../config/database.js';
 
 // Cria um novo usuário com senha criptografada no banco.
-export const createUser = async ({ name, email, password, cpf, date_of_birth }) => {
-  const passwordHash = await bcrypt.hash(password, 10);
+export const criarUsuario = async ({ nome, email, senha, cpf, data_nascimento }) => {
+  const senhaHash = await bcrypt.hash(senha, 10);
 
-  const result = await query(
-    'INSERT INTO users (name, email, cpf, date_of_birth, password_hash) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, email, cpf, date_of_birth',
-    [name, email, cpf, date_of_birth, passwordHash]
+  const resultado = await executarConsulta(
+    'INSERT INTO usuarios (nome, email, cpf, data_nascimento, senha_hash) VALUES ($1, $2, $3, $4, $5) RETURNING id, nome, email, cpf, data_nascimento',
+    [nome, email, cpf, data_nascimento, senhaHash]
   );
 
-  return result.rows[0];
+  return resultado.rows[0];
 };
 
 // Busca um usuário pelo e-mail para validar login ou duplicidade.
-export const findUserByEmail = async (email) => {
-  const result = await query('SELECT * FROM users WHERE email = $1', [email]);
-  return result.rows[0] || null;
+export const buscarUsuarioPorEmail = async (email) => {
+  const resultado = await executarConsulta('SELECT * FROM usuarios WHERE email = $1', [email]);
+  return resultado.rows[0] || null;
 };
 
 // Compara a senha informada com o hash salvo no banco.
-export const verifyPassword = async (password, passwordHash) => {
-  return bcrypt.compare(password, passwordHash);
+export const verificarSenha = async (senha, senhaHash) => {
+  return bcrypt.compare(senha, senhaHash);
 };

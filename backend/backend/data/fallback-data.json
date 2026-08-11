@@ -1,14 +1,14 @@
 {
-  "users": [
+  "usuarios": [
     {
       "id": 1,
-      "name": "Teste",
+      "nome": "Teste",
       "email": "teste@example.com",
       "cpf": "123.456.789-00",
-      "date_of_birth": "2000-01-01",
-      "password_hash": "hash",
-      "created_at": "2026-08-03T23:37:48.637Z"
+      "data_nascimento": "2000-01-01",
+      "senha_hash": "hash",
+      "criado_em": "2026-08-03T23:37:48.637Z"
     }
   ],
-  "pets": []
+  "animais": []
 }

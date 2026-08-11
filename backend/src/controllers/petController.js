@@ -1,30 +1,30 @@
-// Controlador responsável pelas operações de pets recebidas pela API.
-import { createPet, listPets } from '../services/petService.js';
+// Controlador responsável pelas operações de animais recebidas pela API.
+import { criarAnimal, listarAnimais } from '../services/petService.js';
 
-// Busca e retorna todos os pets cadastrados.
-export const getPets = async (_req, res) => {
+// Busca e retorna todos os animais cadastrados.
+export const obterAnimais = async (_requisicao, resposta) => {
     try {
-        const pets = await listPets();
-        return res.status(200).json(pets);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: 'Erro ao listar pets.', error: error.message });
+        const animais = await listarAnimais();
+        return resposta.status(200).json(animais);
+    } catch (erro) {
+        console.error(erro);
+        return resposta.status(500).json({ mensagem: 'Erro ao listar animais.', erro: erro.message });
     }
 };
 
 // Cria um novo pet com os dados recebidos na requisição.
-export const createPetController = async (req, res) => {
+export const cadastrarAnimal = async (requisicao, resposta) => {
     try {
-        const { name, species, age, description } = req.body;
+        const { nome, especie, idade, descricao } = requisicao.body;
 
-        if (!name || !species) {
-            return res.status(400).json({ message: 'Nome e espécie são obrigatórios.' });
+        if (!nome || !especie) {
+            return resposta.status(400).json({ mensagem: 'Nome e espécie são obrigatórios.' });
         }
 
-        const pet = await createPet({ name, species, age, description });
-        return res.status(201).json({ message: 'Pet cadastrado com sucesso.', pet });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: 'Erro ao cadastrar pet.', error: error.message });
+        const animal = await criarAnimal({ nome, especie, idade, descricao });
+        return resposta.status(201).json({ mensagem: 'Animal cadastrado com sucesso.', animal });
+    } catch (erro) {
+        console.error(erro);
+        return resposta.status(500).json({ mensagem: 'Erro ao cadastrar animal.', erro: erro.message });
     }
 };
