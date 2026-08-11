@@ -29,22 +29,25 @@
 
             <div class="text-grey q-mb-md">Faça login para continuar</div>
 
-            <!-- Campos de login -->
-            <q-input filled v-model="email" label="E-mail" type="email" class="q-mb-md" dense />
-            <q-input filled v-model="password" label="Senha" type="password" dense>
-              <template v-slot:after>
-                <q-btn flat dense no-caps class="text-caption text-primary">
-                  Esqueceu a senha?
-                </q-btn>
-              </template>
-            </q-input>
+            <!-- O q-form permite enviar tanto pelo botão quanto pela tecla Enter. -->
+            <q-form @submit="login">
+              <q-input filled v-model="email" label="E-mail" type="email" class="q-mb-md" dense
+                :rules="[val => !!val || 'Informe o e-mail']" />
+              <q-input filled v-model="password" label="Senha" type="password" dense
+                :rules="[val => !!val || 'Informe a senha']">
+                <template v-slot:after>
+                  <q-btn flat dense no-caps class="text-caption text-primary">
+                    Esqueceu a senha?
+                  </q-btn>
+                </template>
+              </q-input>
 
-            <!-- Botões -->
-            <q-btn label="Entrar" color="green-6" class="full-width q-mt-lg" unelevated :loading="loading"
-              @click="login" />
-            <q-btn flat class="full-width q-mt-sm text-green-7" @click="goToRegister">
-              Criar conta
-            </q-btn>
+              <q-btn label="Entrar" color="green-6" class="full-width q-mt-lg" unelevated type="submit"
+                :loading="loading" />
+              <q-btn flat class="full-width q-mt-sm text-green-7" @click="goToRegister">
+                Criar conta
+              </q-btn>
+            </q-form>
           </q-card>
         </div>
 
@@ -60,6 +63,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Notify } from 'quasar'
 import { api } from 'src/services/api'
+import { saveAuthenticatedUser } from 'src/services/auth'
 import pets from 'src/assets/pets.png'
 
 const email = ref('')
@@ -79,17 +83,21 @@ const login = async () => {
   }
   loading.value = true
   try {
-    await api.post('/auth/login', {
+    const { data } = await api.post('/auth/login', {
       email: email.value,
       password: password.value,
     })
+
+    // A sessão só é criada depois que a API confirma e devolve o usuário autenticado.
+    saveAuthenticatedUser(data.user)
 
     Notify.create({
       message: 'Login realizado com sucesso!',
       color: 'green',
       icon: 'check',
     })
-    router.push('/dashboard')
+    // replace evita voltar à tela de login pelo botão "voltar" do navegador.
+    router.replace('/dashboard')
   } catch (error) {
     const message = error?.response?.data?.message || 'Usuário ou senha incorretos!'
     Notify.create({

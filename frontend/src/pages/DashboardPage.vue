@@ -1,41 +1,41 @@
 <template>
   <q-layout view="hHh lpR fFf">
-    <q-drawer show-if-above v-model="drawerOpen" width="250" bordered class="bg-green-6 text-white">
+    <q-header class="bg-white text-grey-9 shadow-1">
+      <q-toolbar>
+        <q-btn flat round dense icon="menu" class="lt-md" @click="drawerOpen = !drawerOpen" />
+        <q-toolbar-title class="text-weight-bold text-green-9">Clínica Pet</q-toolbar-title>
+        <div class="gt-xs text-body2 q-mr-sm">Olá, {{ primeiroNome }}</div>
+        <q-avatar color="green-6" text-color="white" size="34px">{{ iniciaisUsuario }}</q-avatar>
+        <q-btn flat round dense icon="logout" color="negative" class="q-ml-sm" aria-label="Sair" @click="logout">
+          <q-tooltip>Sair da conta</q-tooltip>
+        </q-btn>
+      </q-toolbar>
+    </q-header>
 
-      <div class="drawer-center">
-        <q-avatar size="150px" class="q-mb-md">
-          <img src="src/assets/ops.jpeg" alt="User" />
-        </q-avatar>
+    <q-drawer v-model="drawerOpen" show-if-above width="250" bordered class="bg-green-7 text-white">
+      <div class="drawer-content q-pa-md">
+        <q-avatar size="82px" class="bg-white text-green-8 q-mb-sm">{{ iniciaisUsuario }}</q-avatar>
+        <div class="text-h6">{{ usuario.name || 'Usuário' }}</div>
+        <div class="text-caption q-mb-lg text-green-1">{{ dataAtual }}</div>
 
-        <div class="user-info">
-          <div class="text-h6">Olá, Douglas</div>
-          <p class="data">{{ dataAtual }}</p>
-        </div>
-
-        <q-list dense class="menu-list">
-          <q-item clickable v-ripple class="menu-item">
+        <q-list padding>
+          <q-item clickable v-ripple active active-class="menu-active" @click="rolarPara('agenda')">
             <q-item-section avatar><q-icon name="event" /></q-item-section>
             <q-item-section>Agenda</q-item-section>
           </q-item>
-
-          <q-item clickable v-ripple class="menu-item">
+          <q-item clickable v-ripple @click="abrirCadastroPet">
             <q-item-section avatar><q-icon name="pets" /></q-item-section>
             <q-item-section>Pets</q-item-section>
           </q-item>
-
-          <q-item clickable v-ripple class="menu-item">
-            <q-item-section avatar><q-icon name="medication" /></q-item-section>
+          <q-item clickable v-ripple @click="recursoEmBreve('Consultas')">
+            <q-item-section avatar><q-icon name="medical_services" /></q-item-section>
             <q-item-section>Consultas</q-item-section>
           </q-item>
-
-          <q-item clickable v-ripple class="menu-item" to="/vacinas/nova">
-            <q-item-section avatar>
-              <q-icon name="vaccines" />
-            </q-item-section>
-            <q-item-section>Agendar vacinas</q-item-section>
+          <q-item clickable v-ripple to="/vacinas/nova">
+            <q-item-section avatar><q-icon name="vaccines" /></q-item-section>
+            <q-item-section>Agendar vacina</q-item-section>
           </q-item>
-
-          <q-item clickable v-ripple class="menu-item">
+          <q-item clickable v-ripple @click="recursoEmBreve('Perfil')">
             <q-item-section avatar><q-icon name="person" /></q-item-section>
             <q-item-section>Perfil</q-item-section>
           </q-item>
@@ -44,260 +44,298 @@
     </q-drawer>
 
     <q-page-container>
-      <q-page class="bg-grey-2">
-        <div class="row no-wrap">
-          <div class="col q-pa-md">
-
-            <!-- PET CARD -->
-            <q-card class="dog-card bg-green-4 q-pa-none q-mb-md">
-              <div class="dog-card-content">
-                <img src="src/assets/pet-particular.jpg" alt="Dog" class="dog-image" />
-                <div class="dog-info">
-                  <div class="text-subtitle1 text-weight-bold">Nome: Zeus</div>
-                  <div class="text-caption">Idade: 4 anos</div>
-                  <div class="text-caption">Peso: 15 kg</div>
-                </div>
-              </div>
-            </q-card>
-
-            <!-- EVENTOS DA SEMANA -->
-            <q-card class="q-mb-md bg-white q-pa-md">
-              <div class="text-h6 q-mb-sm">Próximos eventos da semana</div>
-              <div class="row q-col-gutter-sm">
-
-                <q-card v-for="(dia, i) in diasSemana" :key="i" class="col bg-grey-1 q-pa-sm">
-                  <div class="text-center text-weight-bold q-mb-sm">{{ dia }}</div>
-
-                  <div v-for="ev in eventosPorDia(dia)" :key="ev.id"
-                    class="q-pa-sm bg-white q-mb-sm rounded-borders shadow-1">
-                    <q-badge color="red" text-color="white" class="q-mb-sm flex items-center">
-                      <q-icon name="vaccines" size="14px" class="q-mr-xs" />
-                      Vacina
-                    </q-badge>
-
-                    <div><b>Pet:</b> {{ ev.pet }}</div>
-                    <div><b>Veterinário(a):</b> {{ ev.veterinario }}</div>
-                    <div><b>Local:</b> {{ ev.local }}</div>
-                    <div><b>Data/hora:</b> {{ ev.data }}, {{ ev.horario }}</div>
-
-                    <div class="row justify-end q-mt-sm">
-                      <q-btn icon="edit" color="green-7" flat @click="$router.push(`/vacinas/editar/${ev.id}`)" />
-                      <q-btn flat dense size="sm" icon="delete" color="negative" class="q-ml-sm"
-                        @click="deletarVacina(ev.id)" />
-                    </div>
-                  </div>
-
-                  <div v-if="eventosPorDia(dia).length === 0" class="text-grey text-center text-caption">
-                    Sem eventos
-                  </div>
-                </q-card>
-
-              </div>
-            </q-card>
-
-            <!-- ALERTAS -->
-            <q-card class="q-mb-md bg-white q-pa-md">
-              <div class="text-h6 q-mb-sm">Alertas</div>
-              <div class="bg-grey-3" style="height: 100px; border-radius: 6px;"></div>
-            </q-card>
-
-            <!-- GRÁFICOS -->
-            <q-card class="q-mb-md bg-white q-pa-md">
-              <div class="text-h6 q-mb-md">Gráficos de Vacinas</div>
-
-              <div class="row q-col-gutter-md">
-                <div class="col-12 col-md-6">
-                  <canvas id="barChart"></canvas>
-                </div>
-                <div class="col-12 col-md-6">
-                  <canvas id="pieChart"></canvas>
-                </div>
-              </div>
-            </q-card>
-
+      <q-page class="bg-grey-2 q-pa-md">
+        <section class="row items-center justify-between q-mb-md">
+          <div>
+            <h1 class="text-h5 text-weight-bold q-my-none">Visão geral</h1>
+            <div class="text-grey-7">Acompanhe os cuidados dos seus pets.</div>
           </div>
-        </div>
+          <div class="row q-gutter-sm q-mt-sm">
+            <q-btn outline color="green-8" icon="pets" label="Cadastrar pet" @click="abrirCadastroPet" />
+            <q-btn unelevated color="green-7" icon="add" label="Agendar vacina" to="/vacinas/nova" />
+          </div>
+        </section>
+
+        <!-- Os cards resumem as informações que exigem atenção imediata. -->
+        <section class="row q-col-gutter-md q-mb-md">
+          <div v-for="card in cardsResumo" :key="card.label" class="col-12 col-sm-6 col-lg-3">
+            <q-card flat bordered class="summary-card">
+              <q-card-section class="row items-center no-wrap">
+                <q-avatar :color="card.color" text-color="white" :icon="card.icon" size="48px" />
+                <div class="q-ml-md">
+                  <div class="text-h5 text-weight-bold">{{ card.value }}</div>
+                  <div class="text-grey-7">{{ card.label }}</div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+        </section>
+
+        <section class="row q-col-gutter-md q-mb-md">
+          <div class="col-12 col-lg-7">
+            <q-card flat bordered class="full-height">
+              <q-card-section class="row items-center justify-between q-pb-sm">
+                <div>
+                  <div class="text-h6">Pet em destaque</div>
+                  <div class="text-caption text-grey-7">Dados cadastrados na clínica</div>
+                </div>
+                <q-btn flat color="green-8" label="Adicionar" icon="add" @click="abrirCadastroPet" />
+              </q-card-section>
+              <q-separator />
+              <q-card-section v-if="petDestaque" class="row items-center q-gutter-md">
+                <q-avatar size="82px" color="green-1" text-color="green-9" icon="pets" />
+                <div>
+                  <div class="text-h6">{{ petDestaque.name }}</div>
+                  <div class="text-grey-8">{{ petDestaque.species }}</div>
+                  <div v-if="petDestaque.age !== null && petDestaque.age !== undefined" class="text-caption">
+                    {{ petDestaque.age }} ano(s)
+                  </div>
+                  <div v-if="petDestaque.description" class="text-caption text-grey-7">{{ petDestaque.description }}</div>
+                </div>
+              </q-card-section>
+              <q-card-section v-else class="text-center text-grey-7 q-py-xl">
+                <q-icon name="pets" size="42px" color="grey-5" />
+                <div class="q-mt-sm">Nenhum pet cadastrado.</div>
+                <q-btn flat color="green-8" label="Cadastrar o primeiro pet" @click="abrirCadastroPet" />
+              </q-card-section>
+            </q-card>
+          </div>
+
+          <div class="col-12 col-lg-5">
+            <q-card flat bordered class="full-height">
+              <q-card-section>
+                <div class="text-h6">Alertas</div>
+                <div class="text-caption text-grey-7">Vacinas que merecem atenção</div>
+              </q-card-section>
+              <q-separator />
+              <q-list v-if="alertas.length" separator>
+                <q-item v-for="alerta in alertas" :key="alerta.id">
+                  <q-item-section avatar><q-icon name="notifications" color="orange-8" /></q-item-section>
+                  <q-item-section>
+                    <q-item-label>Vacina de {{ alerta.pet }}</q-item-label>
+                    <q-item-label caption>{{ formatarData(alerta.data) }} às {{ alerta.horario || 'horário não informado' }}</q-item-label>
+                  </q-item-section>
+                </q-item>
+              </q-list>
+              <q-card-section v-else class="text-grey-7 text-center q-py-lg">
+                <q-icon name="check_circle" color="positive" size="30px" />
+                <div>Nenhuma vacina para os próximos 7 dias.</div>
+              </q-card-section>
+            </q-card>
+          </div>
+        </section>
+
+        <q-card id="agenda" flat bordered class="q-mb-md scroll-mt">
+          <q-card-section class="row items-center justify-between q-col-gutter-md">
+            <div>
+              <div class="text-h6">Próximos eventos da semana</div>
+              <div class="text-caption text-grey-7">Agenda de vacinação</div>
+            </div>
+            <!-- O filtro facilita acompanhar a agenda de um pet específico. -->
+            <q-select v-model="petSelecionado" :options="opcoesPets" label="Filtrar por pet" dense outlined clearable
+              class="filter-select" />
+          </q-card-section>
+          <q-separator />
+          <q-card-section class="row q-col-gutter-sm">
+            <div v-for="dia in diasSemana" :key="dia" class="col-12 col-sm">
+              <q-card flat class="bg-grey-1 day-card q-pa-sm">
+                <div class="text-center text-weight-bold q-mb-sm">{{ dia }}</div>
+                <div v-for="evento in eventosPorDia(dia)" :key="evento.id" class="event-card q-pa-sm q-mb-sm bg-white shadow-1">
+                  <q-badge color="red-7" label="Vacina" class="q-mb-xs" />
+                  <div class="text-weight-medium">{{ evento.pet }}</div>
+                  <div class="text-caption">{{ evento.veterinario || 'Veterinário não informado' }}</div>
+                  <div class="text-caption">{{ evento.local }} · {{ evento.horario || '--:--' }}</div>
+                  <div class="row justify-end q-mt-xs">
+                    <q-btn flat dense round icon="edit" color="green-8" @click="editarVacina(evento.id)" />
+                    <q-btn flat dense round icon="delete" color="negative" @click="deletarVacina(evento.id)" />
+                  </div>
+                </div>
+                <div v-if="!eventosPorDia(dia).length" class="text-caption text-grey-7 text-center q-py-md">Sem eventos</div>
+              </q-card>
+            </div>
+          </q-card-section>
+        </q-card>
+
+        <q-card flat bordered>
+          <q-card-section>
+            <div class="text-h6">Gráficos de vacinas</div>
+            <div class="text-caption text-grey-7">Distribuição dos eventos exibidos na agenda.</div>
+          </q-card-section>
+          <q-separator />
+          <q-card-section class="row q-col-gutter-md">
+            <div class="col-12 col-md-6"><canvas ref="barCanvas" /></div>
+            <div class="col-12 col-md-6"><canvas ref="pieCanvas" /></div>
+          </q-card-section>
+        </q-card>
       </q-page>
     </q-page-container>
 
+    <!-- Cadastro rápido para que o estado vazio do dashboard tenha uma ação útil. -->
+    <q-dialog v-model="cadastroPetAberto" persistent>
+      <q-card style="width: 440px; max-width: 92vw">
+        <q-card-section class="row items-center"><div class="text-h6">Cadastrar pet</div><q-space /><q-btn flat round icon="close" v-close-popup /></q-card-section>
+        <q-form @submit="salvarPet">
+          <q-card-section class="q-gutter-md">
+            <q-input v-model="novoPet.name" outlined label="Nome *" :rules="[val => !!val || 'Informe o nome']" />
+            <q-input v-model="novoPet.species" outlined label="Espécie *" :rules="[val => !!val || 'Informe a espécie']" />
+            <q-input v-model.number="novoPet.age" outlined label="Idade" type="number" min="0" />
+            <q-input v-model="novoPet.description" outlined label="Observações" type="textarea" />
+          </q-card-section>
+          <q-card-actions align="right"><q-btn flat label="Cancelar" v-close-popup /><q-btn color="green-7" label="Salvar pet" type="submit" :loading="salvandoPet" /></q-card-actions>
+        </q-form>
+      </q-card>
+    </q-dialog>
   </q-layout>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
-import { useVacinasStore } from "src/stores/vacinasStore";
-import { useQuasar } from "quasar";
-import Chart from "chart.js/auto";
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { useQuasar } from 'quasar'
+import Chart from 'chart.js/auto'
+import { api } from 'src/services/api'
+import { clearAuthenticatedUser, getAuthenticatedUser } from 'src/services/auth'
+import { useVacinasStore } from 'src/stores/vacinasStore'
 
-const drawerOpen = ref(true);
+const router = useRouter()
+const $q = useQuasar()
+const store = useVacinasStore()
+const drawerOpen = ref(true)
+const cadastroPetAberto = ref(false)
+const salvandoPet = ref(false)
+const petSelecionado = ref(null)
+const pets = ref([])
+const barCanvas = ref(null)
+const pieCanvas = ref(null)
+const barChartInstance = ref(null)
+const pieChartInstance = ref(null)
+const usuario = getAuthenticatedUser() || {}
+const novoPet = reactive({ name: '', species: '', age: null, description: '' })
+const diasSemana = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira']
 
-// Dias da semana
-const diasSemana = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira"];
+const dataAtual = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).format(new Date())
+const primeiroNome = computed(() => usuario.name?.split(' ')[0] || 'usuário')
+const iniciaisUsuario = computed(() => (usuario.name || 'U').split(' ').map((nome) => nome[0]).slice(0, 2).join('').toUpperCase())
+const petDestaque = computed(() => pets.value[0] || null)
+const opcoesPets = computed(() => [...new Set(store.semana.map((evento) => evento.pet).filter(Boolean))])
+const eventosFiltrados = computed(() => store.semana.filter((evento) => !petSelecionado.value || evento.pet === petSelecionado.value))
 
-// Data atual formatada
-const hoje = new Date();
-const dataAtual = ref(
-  hoje.toLocaleDateString("pt-BR", {
-    weekday: "long",
-    day: "2-digit",
-    month: "long",
-    year: "numeric"
-  })
-);
+// Alertas são calculados a partir da agenda, evitando informações fixas no template.
+const alertas = computed(() => {
+  const hoje = new Date()
+  hoje.setHours(0, 0, 0, 0)
+  const limite = new Date(hoje)
+  limite.setDate(limite.getDate() + 7)
+  return store.lista.filter((evento) => {
+    if (!evento?.data) return false
+    const data = new Date(`${evento.data}T12:00:00`)
+    return data >= hoje && data <= limite
+  }).sort((a, b) => a.data.localeCompare(b.data))
+})
 
-// STORE
-const store = useVacinasStore();
-const $q = useQuasar();
+const cardsResumo = computed(() => [
+  { label: 'Pets cadastrados', value: pets.value.length, icon: 'pets', color: 'green-7' },
+  { label: 'Vacinas nesta semana', value: store.semana.length, icon: 'vaccines', color: 'red-7' },
+  { label: 'Próximos alertas', value: alertas.value.length, icon: 'notifications', color: 'orange-8' },
+  { label: 'Eventos exibidos', value: eventosFiltrados.value.length, icon: 'event_available', color: 'blue-7' },
+])
 
-// Refs para instâncias dos gráficos
-const barChartInstance = ref(null);
-const pieChartInstance = ref(null);
+onMounted(async () => {
+  await Promise.all([store.carregarSemana(), carregarPets()])
+  await nextTick()
+  criarGraficos()
+})
 
-// Atualiza gráficos automaticamente quando a semana muda
-watch(
-  () => store.semana,
-  () => {
-    criarGraficos();
-  },
-  { deep: true }
-);
+// Recria os gráficos quando a agenda ou o filtro forem alterados.
+watch(eventosFiltrados, async () => {
+  await nextTick()
+  criarGraficos()
+}, { deep: true })
 
-// Carrega dados ao montar
-onMounted(() => {
-  store.carregarSemana();
-  setTimeout(criarGraficos, 600);
-});
+onBeforeUnmount(() => {
+  barChartInstance.value?.destroy()
+  pieChartInstance.value?.destroy()
+})
 
-const eventosPorDia = (diaNome) => {
-  // diasSemana está em ordem: ["Segunda-feira", "Terça-feira", ...]
-  const diaIndex = diasSemana.indexOf(diaNome); // 0 = Segunda, 1 = Terça, ...
-  if (diaIndex === -1) return [];
-
-  return store.semana.filter(ev => {
-    if (!ev?.data) return false;
-
-    const data = new Date(ev.data + "T12:00:00"); // evita shift por timezone
-    // converte getDay (0=Dom,1=Seg...) para index onde 0=Segunda
-    const weekdayIndex = (data.getDay() + 6) % 7; // 0=Segunda .. 6=Domingo
-    return weekdayIndex === diaIndex;
-  });
-};
-
-// Criar / Atualizar gráficos
-function criarGraficos() {
-  const pets = {};
-  store.semana.forEach(ev => {
-    if (!pets[ev.pet]) pets[ev.pet] = 0;
-    pets[ev.pet]++;
-  });
-
-  const labels = Object.keys(pets);
-  const values = Object.values(pets);
-
-  // destruir gráficos antigos
-  if (barChartInstance.value) barChartInstance.value.destroy();
-  if (pieChartInstance.value) pieChartInstance.value.destroy();
-
-  // BARRAS
-  barChartInstance.value = new Chart(document.getElementById("barChart"), {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [{
-        label: "Vacinas por Pet",
-        data: values,
-        backgroundColor: ["#4caf50", "#8bc34a", "#cddc39"]
-      }]
-    },
-    options: { responsive: true }
-  });
-
-  // PIZZA
-  pieChartInstance.value = new Chart(document.getElementById("pieChart"), {
-    type: "pie",
-    data: {
-      labels,
-      datasets: [{
-        data: values,
-        backgroundColor: ["#4caf50", "#8bc34a", "#cddc39"]
-      }]
-    },
-    options: { responsive: true }
-  });
+async function carregarPets() {
+  try {
+    const { data } = await api.get('/pets')
+    pets.value = data
+  } catch (error) {
+    // A tela continua utilizável se o backend de pets não estiver iniciado.
+    console.error('Erro ao carregar pets:', error)
+  }
 }
 
-// DELETAR
+function eventosPorDia(diaNome) {
+  const indiceDia = diasSemana.indexOf(diaNome)
+  return eventosFiltrados.value.filter((evento) => {
+    if (!evento?.data) return false
+    return (new Date(`${evento.data}T12:00:00`).getDay() + 6) % 7 === indiceDia
+  })
+}
+
+function criarGraficos() {
+  if (!barCanvas.value || !pieCanvas.value) return
+  const quantidadePorPet = eventosFiltrados.value.reduce((acumulador, evento) => {
+    acumulador[evento.pet] = (acumulador[evento.pet] || 0) + 1
+    return acumulador
+  }, {})
+  const labels = Object.keys(quantidadePorPet)
+  const valores = Object.values(quantidadePorPet)
+  const cores = ['#43a047', '#8bc34a', '#ffb300', '#e53935', '#1e88e5']
+
+  barChartInstance.value?.destroy()
+  pieChartInstance.value?.destroy()
+  barChartInstance.value = new Chart(barCanvas.value, { type: 'bar', data: { labels, datasets: [{ label: 'Vacinas por pet', data: valores, backgroundColor: cores }] }, options: { responsive: true, plugins: { legend: { display: false } } } })
+  pieChartInstance.value = new Chart(pieCanvas.value, { type: 'doughnut', data: { labels, datasets: [{ data: valores, backgroundColor: cores }] }, options: { responsive: true } })
+}
+
+function abrirCadastroPet() {
+  cadastroPetAberto.value = true
+}
+
+async function salvarPet() {
+  salvandoPet.value = true
+  try {
+    const { data } = await api.post('/pets', novoPet)
+    pets.value.push(data.pet)
+    Object.assign(novoPet, { name: '', species: '', age: null, description: '' })
+    cadastroPetAberto.value = false
+    $q.notify({ type: 'positive', message: 'Pet cadastrado com sucesso!' })
+  } catch (error) {
+    $q.notify({ type: 'negative', message: error?.response?.data?.message || 'Não foi possível cadastrar o pet.' })
+  } finally {
+    salvandoPet.value = false
+  }
+}
+
+function editarVacina(id) { router.push(`/vacinas/editar/${id}`) }
+
 function deletarVacina(id) {
-  $q.dialog({
-    title: "Excluir vacina",
-    message: "Tem certeza que deseja excluir?",
-    cancel: true,
-    persistent: true
-  }).onOk(() => store.deletarVacina(id));
+  $q.dialog({ title: 'Excluir vacina', message: 'Tem certeza que deseja excluir?', cancel: true, persistent: true })
+    .onOk(() => store.deletarVacina(id))
+}
+
+function formatarData(data) { return new Date(`${data}T12:00:00`).toLocaleDateString('pt-BR') }
+function rolarPara(id) { document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }) }
+function recursoEmBreve(nome) { $q.notify({ message: `${nome} estará disponível em breve.`, color: 'blue-7', icon: 'info' }) }
+
+function logout() {
+  // A remoção da sessão faz a guarda do roteador bloquear novamente as páginas protegidas.
+  clearAuthenticatedUser()
+  router.replace('/')
+  $q.notify({ type: 'positive', message: 'Você saiu da conta.' })
 }
 </script>
 
 <style scoped>
-.bg-green-6 {
-  background-color: #a3c77b !important;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-}
-
-.drawer-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  min-height: 100vh;
-  text-align: center;
-  margin-top: 30px;
-}
-
-.user-info {
-  margin-bottom: 20px;
-}
-
-.menu-list {
-  width: 95%;
-}
-
-.menu-item {
-  background-color: rgba(255, 255, 255, 0.15);
-  border-radius: 10px;
-  margin-bottom: 8px;
-  transition: 0.2s;
-}
-
-.menu-item:hover {
-  background-color: rgba(255, 255, 255, 0.25);
-  transform: translateY(-2px);
-}
-
-.dog-card {
-  border-radius: 12px;
-  overflow: hidden;
-  height: 180px;
-}
-
-.dog-card-content {
-  display: flex;
-  align-items: center;
-  padding: 16px;
-  gap: 16px;
-  background-color: #a3c77b;
-}
-
-.dog-image {
-  width: 120px;
-  height: 120px;
-  border-radius: 12px;
-  object-fit: cover;
-}
-
-.rounded-borders {
-  border-radius: 10px;
-}
+.drawer-content { min-height: 100%; }
+.menu-active, .q-item:hover { background: rgba(255, 255, 255, .16); border-radius: 8px; }
+.summary-card { min-height: 96px; border-radius: 12px; }
+.day-card { height: 100%; min-height: 150px; border-radius: 10px; }
+.event-card { border-left: 3px solid #43a047; border-radius: 8px; }
+.filter-select { width: 230px; max-width: 100%; }
+.scroll-mt { scroll-margin-top: 70px; }
+@media (max-width: 599px) { .filter-select { width: 100%; margin-top: 12px; } }
 </style>

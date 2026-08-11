@@ -29,5 +29,7 @@ yarn-error.log*
 *.njsproj
 *.sln
 
-# local .env files
+# Arquivos locais com credenciais: mantenha apenas os arquivos .env.example no Git.
+.env
 .env.local*
+backend/.env
