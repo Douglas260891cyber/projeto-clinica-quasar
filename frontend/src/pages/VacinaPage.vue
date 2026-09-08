@@ -100,6 +100,11 @@ const form = ref({
 
 // Carregar dados ao editar
 onMounted(async () => {
+  // Quando a ficha do pet abre este formulário, o nome já vem selecionado pela rota.
+  if (!isEdit.value && route.query.pet) {
+    form.value.pet = String(route.query.pet)
+  }
+
   if (isEdit.value) {
     try {
       const resp = await api.get(`/vacinas/${route.params.id}`);

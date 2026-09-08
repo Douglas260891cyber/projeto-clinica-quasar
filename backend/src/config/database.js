@@ -63,6 +63,9 @@ export const inicializarBancoDeDados = async () => {
         especie VARCHAR(100) NOT NULL,
         idade INTEGER,
         descricao TEXT,
+        raca VARCHAR(100),
+        peso NUMERIC(6, 2),
+        foto_url TEXT,
         criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
@@ -79,6 +82,9 @@ export const inicializarBancoDeDados = async () => {
         IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'animais' AND column_name = 'age') THEN ALTER TABLE animais RENAME COLUMN age TO idade; END IF;
         IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'animais' AND column_name = 'description') THEN ALTER TABLE animais RENAME COLUMN description TO descricao; END IF;
         IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'animais' AND column_name = 'created_at') THEN ALTER TABLE animais RENAME COLUMN created_at TO criado_em; END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'animais' AND column_name = 'raca') THEN ALTER TABLE animais ADD COLUMN raca VARCHAR(100); END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'animais' AND column_name = 'peso') THEN ALTER TABLE animais ADD COLUMN peso NUMERIC(6, 2); END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'animais' AND column_name = 'foto_url') THEN ALTER TABLE animais ADD COLUMN foto_url TEXT; END IF;
       END $$;
     `);
 

@@ -23,7 +23,7 @@
             <q-item-section avatar><q-icon name="event" /></q-item-section>
             <q-item-section>Agenda</q-item-section>
           </q-item>
-          <q-item clickable v-ripple @click="abrirCadastroPet">
+          <q-item clickable v-ripple to="/pets">
             <q-item-section avatar><q-icon name="pets" /></q-item-section>
             <q-item-section>Pets</q-item-section>
           </q-item>
@@ -76,23 +76,24 @@
             <q-card flat bordered class="full-height">
               <q-card-section class="row items-center justify-between q-pb-sm">
                 <div>
-                  <div class="text-h6">Pet em destaque</div>
+                  <div class="text-h6">Meus pets</div>
                   <div class="text-caption text-grey-7">Dados cadastrados na clínica</div>
                 </div>
-                <q-btn flat color="green-8" label="Adicionar" icon="add" @click="abrirCadastroPet" />
+                <q-btn flat color="green-8" label="Ver todos" icon="pets" to="/pets" />
               </q-card-section>
               <q-separator />
-              <q-card-section v-if="animalDestaque" class="row items-center q-gutter-md">
-                <q-avatar size="82px" color="green-1" text-color="green-9" icon="pets" />
-                <div>
-                  <div class="text-h6">{{ animalDestaque.nome }}</div>
-                  <div class="text-grey-8">{{ animalDestaque.especie }}</div>
-                  <div v-if="animalDestaque.idade !== null && animalDestaque.idade !== undefined" class="text-caption">
-                    {{ animalDestaque.idade }} ano(s)
-                  </div>
-                  <div v-if="animalDestaque.descricao" class="text-caption text-grey-7">{{ animalDestaque.descricao }}</div>
-                </div>
-              </q-card-section>
+              <!-- Cada pet possui seu próprio atalho; o dashboard não esconde os demais cadastrados. -->
+              <q-list v-if="animais.length" separator>
+                <q-item v-for="animal in animais" :key="animal.id" clickable v-ripple class="pet-highlight" @click="abrirPet(animal.id)">
+                  <q-item-section avatar><q-avatar color="green-1" text-color="green-9" icon="pets" /></q-item-section>
+                  <q-item-section>
+                    <q-item-label class="text-weight-medium">{{ animal.nome }}</q-item-label>
+                    <q-item-label caption>{{ animal.especie }}<span v-if="animal.idade !== null && animal.idade !== undefined"> · {{ animal.idade }} ano(s)</span></q-item-label>
+                    <q-item-label v-if="animal.descricao" caption>{{ animal.descricao }}</q-item-label>
+                  </q-item-section>
+                  <q-item-section side><q-btn flat color="green-8" icon-right="arrow_forward" label="Ver perfil" /></q-item-section>
+                </q-item>
+              </q-list>
               <q-card-section v-else class="text-center text-grey-7 q-py-xl">
                 <q-icon name="pets" size="42px" color="grey-5" />
                 <div class="q-mt-sm">Nenhum pet cadastrado.</div>
@@ -216,7 +217,6 @@ const diasSemana = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-fei
 const dataAtual = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).format(new Date())
 const primeiroNome = computed(() => usuario.nome?.split(' ')[0] || 'usuário')
 const iniciaisUsuario = computed(() => (usuario.nome || 'U').split(' ').map((nome) => nome[0]).slice(0, 2).join('').toUpperCase())
-const animalDestaque = computed(() => animais.value[0] || null)
 const opcoesPets = computed(() => [...new Set(store.semana.map((evento) => evento.pet).filter(Boolean))])
 const eventosFiltrados = computed(() => store.semana.filter((evento) => !petSelecionado.value || evento.pet === petSelecionado.value))
 
@@ -295,6 +295,10 @@ function abrirCadastroPet() {
   cadastroPetAberto.value = true
 }
 
+function abrirPet(id) {
+  router.push(`/pets/${id}`)
+}
+
 async function salvarPet() {
   salvandoPet.value = true
   try {
@@ -336,6 +340,7 @@ function logout() {
 .day-card { height: 100%; min-height: 150px; border-radius: 10px; }
 .event-card { border-left: 3px solid #43a047; border-radius: 8px; }
 .filter-select { width: 230px; max-width: 100%; }
+.pet-highlight { cursor: pointer; }
 .scroll-mt { scroll-margin-top: 70px; }
 @media (max-width: 599px) { .filter-select { width: 100%; margin-top: 12px; } }
 </style>

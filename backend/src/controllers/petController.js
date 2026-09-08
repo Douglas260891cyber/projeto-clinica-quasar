@@ -1,5 +1,5 @@
 // Controlador responsável pelas operações de animais recebidas pela API.
-import { criarAnimal, listarAnimais } from '../services/petService.js';
+import { atualizarAnimalPorId, buscarAnimalPorId, criarAnimal, listarAnimais } from '../services/petService.js';
 
 // Busca e retorna todos os animais cadastrados.
 export const obterAnimais = async (_requisicao, resposta) => {
@@ -26,5 +26,32 @@ export const cadastrarAnimal = async (requisicao, resposta) => {
     } catch (erro) {
         console.error(erro);
         return resposta.status(500).json({ mensagem: 'Erro ao cadastrar animal.', erro: erro.message });
+    }
+};
+
+// Retorna um único pet para compor sua ficha completa no frontend.
+export const obterAnimal = async (requisicao, resposta) => {
+    try {
+        const animal = await buscarAnimalPorId(requisicao.params.id);
+        if (!animal) return resposta.status(404).json({ mensagem: 'Pet não encontrado.' });
+        return resposta.status(200).json(animal);
+    } catch (erro) {
+        console.error(erro);
+        return resposta.status(500).json({ mensagem: 'Erro ao buscar o pet.', erro: erro.message });
+    }
+};
+
+// Atualiza apenas os campos permitidos na ficha do pet.
+export const atualizarAnimal = async (requisicao, resposta) => {
+    try {
+        const { nome, especie, idade, descricao, raca, peso, foto_url } = requisicao.body;
+        if (!nome || !especie) return resposta.status(400).json({ mensagem: 'Nome e espécie são obrigatórios.' });
+
+        const animal = await atualizarAnimalPorId(requisicao.params.id, { nome, especie, idade, descricao, raca, peso, foto_url });
+        if (!animal) return resposta.status(404).json({ mensagem: 'Pet não encontrado.' });
+        return resposta.status(200).json({ mensagem: 'Pet atualizado com sucesso.', animal });
+    } catch (erro) {
+        console.error(erro);
+        return resposta.status(500).json({ mensagem: 'Erro ao atualizar o pet.', erro: erro.message });
     }
 };

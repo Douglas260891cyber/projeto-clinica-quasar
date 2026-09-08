@@ -17,6 +17,18 @@ const routes = [
   },
 
   {
+    path: '/pets',
+    component: () => import('pages/PetsPage.vue'),
+    meta: { requiresAuth: true },
+  },
+
+  {
+    path: '/pets/:id',
+    component: () => import('pages/PetDetailsPage.vue'),
+    meta: { requiresAuth: true },
+  },
+
+  {
     path: '/vacinas/nova',
     component: () => import('pages/VacinaPage.vue'),
     meta: { requiresAuth: true },
