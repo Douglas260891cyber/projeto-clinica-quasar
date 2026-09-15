@@ -1,15 +1,12 @@
-import axios from 'axios'
+import { api } from './api'
+import { obterUsuarioAutenticado } from './auth'
 
-const api = axios.create({
-  baseURL: 'http://localhost:3000',
-})
-
-export function criarVacina(data) {
-  return api.post('/vacinas', data).then((res) => res.data)
+export function criarVacina (data) {
+  return api.post('/vacinas', { ...data, usuario_id: obterUsuarioAutenticado()?.id }).then((res) => res.data)
 }
 
-export function listarVacinas() {
-  return api.get('/vacinas').then((res) => res.data)
+export function listarVacinas () {
+  return api.get('/vacinas', { params: { usuario_id: obterUsuarioAutenticado()?.id } }).then((res) => res.data)
 }
 
 export default {

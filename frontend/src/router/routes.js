@@ -17,6 +17,12 @@ const routes = [
   },
 
   {
+    path: '/perfil',
+    component: () => import('pages/ProfilePage.vue'),
+    meta: { requiresAuth: true },
+  },
+
+  {
     path: '/pets',
     component: () => import('pages/PetsPage.vue'),
     meta: { requiresAuth: true },

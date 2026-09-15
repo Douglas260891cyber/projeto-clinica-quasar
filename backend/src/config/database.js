@@ -51,6 +51,8 @@ export const inicializarBancoDeDados = async () => {
         cpf VARCHAR(14) NOT NULL,
         data_nascimento DATE NOT NULL,
         senha_hash VARCHAR(255) NOT NULL,
+        telefone VARCHAR(20),
+        endereco TEXT,
         criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
@@ -66,6 +68,21 @@ export const inicializarBancoDeDados = async () => {
         raca VARCHAR(100),
         peso NUMERIC(6, 2),
         foto_url TEXT,
+        usuario_id INTEGER REFERENCES usuarios(id),
+        criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await executarConsulta(`
+      CREATE TABLE IF NOT EXISTS vacinas (
+        id SERIAL PRIMARY KEY,
+        pet VARCHAR(255) NOT NULL,
+        data DATE NOT NULL,
+        horario TIME,
+        local VARCHAR(255) NOT NULL,
+        veterinario VARCHAR(255),
+        observacao TEXT,
+        usuario_id INTEGER REFERENCES usuarios(id),
         criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
@@ -85,6 +102,9 @@ export const inicializarBancoDeDados = async () => {
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'animais' AND column_name = 'raca') THEN ALTER TABLE animais ADD COLUMN raca VARCHAR(100); END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'animais' AND column_name = 'peso') THEN ALTER TABLE animais ADD COLUMN peso NUMERIC(6, 2); END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'animais' AND column_name = 'foto_url') THEN ALTER TABLE animais ADD COLUMN foto_url TEXT; END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'animais' AND column_name = 'usuario_id') THEN ALTER TABLE animais ADD COLUMN usuario_id INTEGER REFERENCES usuarios(id); END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'usuarios' AND column_name = 'telefone') THEN ALTER TABLE usuarios ADD COLUMN telefone VARCHAR(20); END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'usuarios' AND column_name = 'endereco') THEN ALTER TABLE usuarios ADD COLUMN endereco TEXT; END IF;
       END $$;
     `);
 

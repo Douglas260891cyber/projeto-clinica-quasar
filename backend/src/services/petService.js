@@ -2,8 +2,11 @@
 import { executarConsulta } from '../config/database.js';
 
 // Lista todos os animais cadastrados em ordem crescente de ID.
-export const listarAnimais = async () => {
-    const resultado = await executarConsulta('SELECT * FROM animais ORDER BY id ASC');
+export const listarAnimais = async (usuarioId) => {
+    const consulta = usuarioId
+        ? executarConsulta('SELECT * FROM animais WHERE usuario_id = $1 ORDER BY id ASC', [usuarioId])
+        : executarConsulta('SELECT * FROM animais ORDER BY id ASC');
+    const resultado = await consulta;
     return resultado.rows;
 };
 
@@ -13,10 +16,11 @@ export const buscarAnimalPorId = async (id) => {
 };
 
 // Cria um novo registro de pet no banco de dados.
-export const criarAnimal = async ({ nome, especie, idade, descricao }) => {
+export const criarAnimal = async ({ nome, especie, idade, descricao, raca, peso, foto_url, usuario_id }) => {
     const resultado = await executarConsulta(
-        'INSERT INTO animais (nome, especie, idade, descricao) VALUES ($1, $2, $3, $4) RETURNING *',
-        [nome, especie, idade || null, descricao || null]
+        `INSERT INTO animais (nome, especie, idade, descricao, raca, peso, foto_url, usuario_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+        [nome, especie, idade ?? null, descricao || null, raca || null, peso ?? null, foto_url || null, usuario_id || null]
     );
 
     return resultado.rows[0];

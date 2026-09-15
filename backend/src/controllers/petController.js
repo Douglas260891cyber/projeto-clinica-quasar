@@ -2,9 +2,9 @@
 import { atualizarAnimalPorId, buscarAnimalPorId, criarAnimal, listarAnimais } from '../services/petService.js';
 
 // Busca e retorna todos os animais cadastrados.
-export const obterAnimais = async (_requisicao, resposta) => {
+export const obterAnimais = async (requisicao, resposta) => {
     try {
-        const animais = await listarAnimais();
+        const animais = await listarAnimais(requisicao.query.usuario_id);
         return resposta.status(200).json(animais);
     } catch (erro) {
         console.error(erro);
@@ -15,13 +15,13 @@ export const obterAnimais = async (_requisicao, resposta) => {
 // Cria um novo pet com os dados recebidos na requisição.
 export const cadastrarAnimal = async (requisicao, resposta) => {
     try {
-        const { nome, especie, idade, descricao } = requisicao.body;
+        const { nome, especie, idade, descricao, raca, peso, foto_url, usuario_id } = requisicao.body;
 
         if (!nome || !especie) {
             return resposta.status(400).json({ mensagem: 'Nome e espécie são obrigatórios.' });
         }
 
-        const animal = await criarAnimal({ nome, especie, idade, descricao });
+        const animal = await criarAnimal({ nome, especie, idade, descricao, raca, peso, foto_url, usuario_id });
         return resposta.status(201).json({ mensagem: 'Animal cadastrado com sucesso.', animal });
     } catch (erro) {
         console.error(erro);

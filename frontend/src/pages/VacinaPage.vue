@@ -10,8 +10,11 @@
 
       <!-- PET -->
       <q-card-section>
-        <q-input filled v-model="form.pet" label="Pet *" color="green-7"
-          :rules="[val => !!val || 'Campo obrigatório']" />
+        <q-select filled v-model="form.pet" :options="opcoesPets" label="Pet *" color="green-7"
+          :loading="carregandoPets" :disable="!opcoesPets.length" :rules="[val => !!val || 'Campo obrigatório']">
+          <template #no-option><q-item><q-item-section class="text-grey">Nenhum pet cadastrado para esta conta.</q-item-section></q-item></template>
+        </q-select>
+        <div v-if="!carregandoPets && !opcoesPets.length" class="text-caption text-orange-9 q-mt-sm">Cadastre um pet antes de agendar uma vacina.</div>
       </q-card-section>
 
       <!-- DATA E HORÁRIO -->
@@ -61,10 +64,14 @@ import { ref, onMounted, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useQuasar } from "quasar";
 import { api } from "src/services/api";
+import { obterUsuarioAutenticado } from "src/services/auth";
 
 const $q = useQuasar();
 const router = useRouter();
 const route = useRoute();
+const usuario = obterUsuarioAutenticado();
+const opcoesPets = ref([]);
+const carregandoPets = ref(true);
 
 // --------------------------
 //  OPÇÕES FICTÍCIAS
@@ -100,6 +107,14 @@ const form = ref({
 
 // Carregar dados ao editar
 onMounted(async () => {
+  try {
+    const { data } = await api.get('/animais', { params: { usuario_id: usuario?.id } });
+    opcoesPets.value = data.map((pet) => pet.nome);
+  } catch {
+    $q.notify({ type: 'negative', message: 'Não foi possível carregar seus pets.' });
+  } finally {
+    carregandoPets.value = false;
+  }
   // Quando a ficha do pet abre este formulário, o nome já vem selecionado pela rota.
   if (!isEdit.value && route.query.pet) {
     form.value.pet = String(route.query.pet)
@@ -124,14 +139,14 @@ async function salvarVacina() {
       await api.put(`/vacinas/${route.params.id}`, form.value);
       $q.notify({ type: "positive", message: "Vacina atualizada!" });
     } else {
-      await api.post("/vacinas", form.value);
+      await api.post("/vacinas", { ...form.value, usuario_id: usuario?.id });
       $q.notify({ type: "positive", message: "Vacina cadastrada!" });
     }
 
     router.push("/dashboard");
   } catch (e) {
     console.error(e)
-    $q.notify({ type: "negative", message: "Erro ao carregar vacina." })
+    $q.notify({ type: "negative", message: e.response?.data?.mensagem || "Não foi possível salvar a vacina." })
   }
 
 }

@@ -35,7 +35,7 @@
             <q-item-section avatar><q-icon name="vaccines" /></q-item-section>
             <q-item-section>Agendar vacina</q-item-section>
           </q-item>
-          <q-item clickable v-ripple @click="recursoEmBreve('Perfil')">
+          <q-item clickable v-ripple to="/perfil">
             <q-item-section avatar><q-icon name="person" /></q-item-section>
             <q-item-section>Perfil</q-item-section>
           </q-item>
@@ -180,6 +180,9 @@
             <q-input v-model="novoAnimal.nome" outlined label="Nome *" :rules="[val => !!val || 'Informe o nome']" />
             <q-input v-model="novoAnimal.especie" outlined label="Espécie *" :rules="[val => !!val || 'Informe a espécie']" />
             <q-input v-model.number="novoAnimal.idade" outlined label="Idade" type="number" min="0" />
+            <q-input v-model="novoAnimal.raca" outlined label="Raça" />
+            <q-input v-model.number="novoAnimal.peso" outlined label="Peso" type="number" min="0" step="0.01" suffix="kg" />
+            <q-input v-model.trim="novoAnimal.foto_url" outlined label="URL da foto" type="url" />
             <q-input v-model="novoAnimal.descricao" outlined label="Observações" type="textarea" />
           </q-card-section>
           <q-card-actions align="right"><q-btn flat label="Cancelar" v-close-popup /><q-btn color="green-7" label="Salvar pet" type="submit" :loading="salvandoPet" /></q-card-actions>
@@ -211,8 +214,8 @@ const pieCanvas = ref(null)
 const barChartInstance = ref(null)
 const pieChartInstance = ref(null)
 const usuario = obterUsuarioAutenticado() || {}
-const novoAnimal = reactive({ nome: '', especie: '', idade: null, descricao: '' })
-const diasSemana = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira']
+const novoAnimal = reactive({ nome: '', especie: '', idade: null, raca: '', peso: null, foto_url: '', descricao: '' })
+const diasSemana = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo']
 
 const dataAtual = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).format(new Date())
 const primeiroNome = computed(() => usuario.nome?.split(' ')[0] || 'usuário')
@@ -259,7 +262,7 @@ onBeforeUnmount(() => {
 
 async function carregarAnimais() {
   try {
-    const { data: dados } = await api.get('/animais')
+    const { data: dados } = await api.get('/animais', { params: { usuario_id: usuario.id } })
     animais.value = dados
   } catch (erro) {
     // A tela continua utilizável se o backend de animais não estiver iniciado.
@@ -302,9 +305,9 @@ function abrirPet(id) {
 async function salvarPet() {
   salvandoPet.value = true
   try {
-    const { data: dados } = await api.post('/animais', novoAnimal)
+    const { data: dados } = await api.post('/animais', { ...novoAnimal, usuario_id: usuario.id })
     animais.value.push(dados.animal)
-    Object.assign(novoAnimal, { nome: '', especie: '', idade: null, descricao: '' })
+    Object.assign(novoAnimal, { nome: '', especie: '', idade: null, raca: '', peso: null, foto_url: '', descricao: '' })
     cadastroPetAberto.value = false
     $q.notify({ type: 'positive', message: 'Pet cadastrado com sucesso!' })
   } catch (erro) {

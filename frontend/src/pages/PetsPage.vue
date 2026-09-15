@@ -56,6 +56,9 @@
             <q-input v-model="novoPet.nome" outlined label="Nome *" :rules="[obrigatorio]" />
             <q-input v-model="novoPet.especie" outlined label="Espécie *" :rules="[obrigatorio]" />
             <q-input v-model.number="novoPet.idade" outlined type="number" min="0" label="Idade" />
+            <q-input v-model="novoPet.raca" outlined label="Raça" />
+            <q-input v-model.number="novoPet.peso" outlined type="number" min="0" step="0.01" suffix="kg" label="Peso" />
+            <q-input v-model.trim="novoPet.foto_url" outlined type="url" label="URL da foto" hint="Opcional" />
             <q-input v-model="novoPet.descricao" outlined type="textarea" label="Observações" />
           </q-card-section>
           <q-card-actions align="right"><q-btn flat label="Cancelar" v-close-popup /><q-btn color="green-7" label="Salvar pet" type="submit" :loading="salvando" /></q-card-actions>
@@ -70,6 +73,7 @@ import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { api } from 'src/services/api'
+import { obterUsuarioAutenticado } from 'src/services/auth'
 
 const router = useRouter()
 const $q = useQuasar()
@@ -78,15 +82,16 @@ const carregando = ref(true)
 const erro = ref('')
 const cadastroAberto = ref(false)
 const salvando = ref(false)
-const novoPet = reactive({ nome: '', especie: '', idade: null, descricao: '' })
+const novoPet = reactive({ nome: '', especie: '', idade: null, raca: '', peso: null, foto_url: '', descricao: '' })
 const obrigatorio = (valor) => !!valor || 'Campo obrigatório'
+const usuario = obterUsuarioAutenticado()
 
 onMounted(carregarPets)
 
 async function carregarPets() {
   carregando.value = true
   try {
-    const { data } = await api.get('/animais')
+    const { data } = await api.get('/animais', { params: { usuario_id: usuario?.id } })
     animais.value = data
   } catch {
     erro.value = 'Não foi possível carregar seus pets. Verifique se o backend está em execução.'
@@ -98,9 +103,9 @@ async function carregarPets() {
 async function salvarPet() {
   salvando.value = true
   try {
-    const { data } = await api.post('/animais', novoPet)
+    const { data } = await api.post('/animais', { ...novoPet, usuario_id: usuario?.id })
     animais.value.push(data.animal)
-    Object.assign(novoPet, { nome: '', especie: '', idade: null, descricao: '' })
+    Object.assign(novoPet, { nome: '', especie: '', idade: null, raca: '', peso: null, foto_url: '', descricao: '' })
     cadastroAberto.value = false
     $q.notify({ type: 'positive', message: 'Pet cadastrado com sucesso!' })
   } catch (causa) {

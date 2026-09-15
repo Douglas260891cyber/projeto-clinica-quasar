@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
+import { api } from 'src/services/api'
+import { obterUsuarioAutenticado } from 'src/services/auth'
 
 export const useVacinasStore = defineStore('vacinas', {
   state: () => ({
@@ -11,7 +12,7 @@ export const useVacinasStore = defineStore('vacinas', {
   actions: {
     async carregarVacinas() {
       try {
-        const { data } = await axios.get('http://localhost:3000/vacinas')
+        const { data } = await api.get('/vacinas', { params: { usuario_id: obterUsuarioAutenticado()?.id } })
         this.lista = data
       } catch (err) {
         console.error('Erro ao carregar vacinas:', err)
@@ -20,7 +21,7 @@ export const useVacinasStore = defineStore('vacinas', {
 
     async adicionarVacina(payload) {
       try {
-        const { data } = await axios.post('http://localhost:3000/vacinas', payload)
+        const { data } = await api.post('/vacinas', { ...payload, usuario_id: obterUsuarioAutenticado()?.id })
 
         this.lista.push(data)
         this.filtrarSemana()
@@ -63,7 +64,7 @@ export const useVacinasStore = defineStore('vacinas', {
 
     async deletarVacina(id) {
       try {
-        await axios.delete(`http://localhost:3000/vacinas/${id}`)
+        await api.delete(`/vacinas/${id}`)
         // remove da lista
         this.lista = this.lista.filter((ev) => ev.id !== id)
         // recalcula semana
@@ -83,7 +84,7 @@ export const useVacinasStore = defineStore('vacinas', {
       try {
         const { id } = this.selecionada
 
-        await axios.put(`http://localhost:3000/vacinas/${id}`, this.selecionada)
+        await api.put(`/vacinas/${id}`, this.selecionada)
 
         // atualiza a lista local
         const index = this.lista.findIndex((v) => v.id === id)

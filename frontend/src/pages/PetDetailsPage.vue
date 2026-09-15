@@ -117,8 +117,8 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
-import axios from 'axios'
 import { api } from 'src/services/api'
+import { obterUsuarioAutenticado } from 'src/services/auth'
 
 const route = useRoute()
 const router = useRouter()
@@ -146,8 +146,7 @@ async function carregarFicha() {
   try {
     const [respostaPet, respostaVacinas] = await Promise.all([
       api.get(`/animais/${route.params.id}`),
-      // O serviço de agenda atual é separado da API principal, por isso esta chamada mantém a URL existente.
-      axios.get('http://localhost:3000/vacinas').catch(() => ({ data: [] })),
+      api.get('/vacinas', { params: { usuario_id: obterUsuarioAutenticado()?.id } }).catch(() => ({ data: [] })),
     ])
     pet.value = respostaPet.data
     vacinas.value = respostaVacinas.data.filter((vacina) => normalizarNome(vacina.pet) === normalizarNome(pet.value.nome)).sort((a, b) => b.data.localeCompare(a.data))
