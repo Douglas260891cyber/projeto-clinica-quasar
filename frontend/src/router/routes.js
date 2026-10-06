@@ -35,16 +35,22 @@ const routes = [
   },
 
   {
-    path: '/vacinas/nova',
-    component: () => import('pages/VacinaPage.vue'),
+    path: '/agendamentos',
+    component: () => import('pages/AgendamentosPage.vue'),
     meta: { requiresAuth: true },
   },
-
   {
-    path: '/vacinas/editar/:id',
-    component: () => import('pages/VacinaPage.vue'),
+    path: '/agendamentos/novo',
+    redirect: '/agendamentos',
     meta: { requiresAuth: true },
   },
+  {
+    path: '/agendamentos/editar/:id',
+    redirect: to => `/agendamentos?editar=${to.params.id}`,
+    meta: { requiresAuth: true },
+  },
+  { path: '/vacinas/nova', redirect: '/agendamentos?tipo=vacina' },
+  { path: '/vacinas/editar/:id', redirect: to => `/agendamentos?editar=${to.params.id}` },
 
   // Always leave this as last one,
   // but you can also remove it

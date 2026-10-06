@@ -27,13 +27,9 @@
             <q-item-section avatar><q-icon name="pets" /></q-item-section>
             <q-item-section>Pets</q-item-section>
           </q-item>
-          <q-item clickable v-ripple @click="recursoEmBreve('Consultas')">
-            <q-item-section avatar><q-icon name="medical_services" /></q-item-section>
-            <q-item-section>Consultas</q-item-section>
-          </q-item>
-          <q-item clickable v-ripple to="/vacinas/nova">
-            <q-item-section avatar><q-icon name="vaccines" /></q-item-section>
-            <q-item-section>Agendar vacina</q-item-section>
+          <q-item clickable v-ripple to="/agendamentos">
+            <q-item-section avatar><q-icon name="event_available" /></q-item-section>
+            <q-item-section>Agendamentos</q-item-section>
           </q-item>
           <q-item clickable v-ripple to="/perfil">
             <q-item-section avatar><q-icon name="person" /></q-item-section>
@@ -52,7 +48,7 @@
           </div>
           <div class="row q-gutter-sm q-mt-sm">
             <q-btn outline color="green-8" icon="pets" label="Cadastrar pet" @click="abrirCadastroPet" />
-            <q-btn unelevated color="green-7" icon="add" label="Agendar vacina" to="/vacinas/nova" />
+            <q-btn unelevated color="green-7" icon="add" label="Novo agendamento" to="/agendamentos" />
           </div>
         </section>
 
@@ -106,14 +102,14 @@
             <q-card flat bordered class="full-height">
               <q-card-section>
                 <div class="text-h6">Alertas</div>
-                <div class="text-caption text-grey-7">Vacinas que merecem atenção</div>
+                <div class="text-caption text-grey-7">Seus próximos cuidados</div>
               </q-card-section>
               <q-separator />
               <q-list v-if="alertas.length" separator>
                 <q-item v-for="alerta in alertas" :key="alerta.id">
                   <q-item-section avatar><q-icon name="notifications" color="orange-8" /></q-item-section>
                   <q-item-section>
-                    <q-item-label>Vacina de {{ alerta.pet }}</q-item-label>
+                    <q-item-label>{{ rotuloTipo(alerta.tipo) }} de {{ alerta.pet }}</q-item-label>
                     <q-item-label caption>{{ formatarData(alerta.data) }} às {{ alerta.horario || 'horário não informado' }}</q-item-label>
                   </q-item-section>
                 </q-item>
@@ -130,7 +126,7 @@
           <q-card-section class="row items-center justify-between q-col-gutter-md">
             <div>
               <div class="text-h6">Próximos eventos da semana</div>
-              <div class="text-caption text-grey-7">Agenda de vacinação</div>
+              <div class="text-caption text-grey-7">Consultas, vacinas e serviços</div>
             </div>
             <!-- O filtro facilita acompanhar a agenda de um pet específico. -->
             <q-select v-model="petSelecionado" :options="opcoesPets" label="Filtrar por pet" dense outlined clearable
@@ -142,13 +138,13 @@
               <q-card flat class="bg-grey-1 day-card q-pa-sm">
                 <div class="text-center text-weight-bold q-mb-sm">{{ dia }}</div>
                 <div v-for="evento in eventosPorDia(dia)" :key="evento.id" class="event-card q-pa-sm q-mb-sm bg-white shadow-1">
-                  <q-badge color="red-7" label="Vacina" class="q-mb-xs" />
+                  <q-badge :color="corTipo(evento.tipo)" :label="rotuloTipo(evento.tipo)" class="q-mb-xs" />
                   <div class="text-weight-medium">{{ evento.pet }}</div>
-                  <div class="text-caption">{{ evento.veterinario || 'Veterinário não informado' }}</div>
+                  <div class="text-caption">{{ evento.profissional || 'Profissional não informado' }}</div>
                   <div class="text-caption">{{ evento.local }} · {{ evento.horario || '--:--' }}</div>
                   <div class="row justify-end q-mt-xs">
-                    <q-btn flat dense round icon="edit" color="green-8" @click="editarVacina(evento.id)" />
-                    <q-btn flat dense round icon="delete" color="negative" @click="deletarVacina(evento.id)" />
+                    <q-btn flat dense round icon="edit" color="green-8" @click="editarAgendamento(evento.id)" />
+                    <q-btn flat dense round icon="delete" color="negative" @click="deletarAgendamento(evento.id)" />
                   </div>
                 </div>
                 <div v-if="!eventosPorDia(dia).length" class="text-caption text-grey-7 text-center q-py-md">Sem eventos</div>
@@ -159,8 +155,8 @@
 
         <q-card flat bordered>
           <q-card-section>
-            <div class="text-h6">Gráficos de vacinas</div>
-            <div class="text-caption text-grey-7">Distribuição dos eventos exibidos na agenda.</div>
+            <div class="text-h6">Gráficos da agenda</div>
+            <div class="text-caption text-grey-7">Distribuição dos agendamentos exibidos.</div>
           </q-card-section>
           <q-separator />
           <q-card-section class="row q-col-gutter-md">
@@ -199,11 +195,11 @@ import { useQuasar } from 'quasar'
 import Chart from 'chart.js/auto'
 import { api } from 'src/services/api'
 import { limparUsuarioAutenticado, obterUsuarioAutenticado } from 'src/services/auth'
-import { useVacinasStore } from 'src/stores/vacinasStore'
+import { useAgendamentosStore } from 'src/stores/agendamentosStore'
 
 const router = useRouter()
 const $q = useQuasar()
-const store = useVacinasStore()
+const store = useAgendamentosStore()
 const drawerOpen = ref(true)
 const cadastroPetAberto = ref(false)
 const salvandoPet = ref(false)
@@ -238,7 +234,7 @@ const alertas = computed(() => {
 
 const cardsResumo = computed(() => [
   { label: 'Pets cadastrados', value: animais.value.length, icon: 'pets', color: 'green-7' },
-  { label: 'Vacinas nesta semana', value: store.semana.length, icon: 'vaccines', color: 'red-7' },
+  { label: 'Agendamentos nesta semana', value: store.semana.length, icon: 'event_available', color: 'red-7' },
   { label: 'Próximos alertas', value: alertas.value.length, icon: 'notifications', color: 'orange-8' },
   { label: 'Eventos exibidos', value: eventosFiltrados.value.length, icon: 'event_available', color: 'blue-7' },
 ])
@@ -290,7 +286,7 @@ function criarGraficos() {
 
   barChartInstance.value?.destroy()
   pieChartInstance.value?.destroy()
-  barChartInstance.value = new Chart(barCanvas.value, { type: 'bar', data: { labels, datasets: [{ label: 'Vacinas por pet', data: valores, backgroundColor: cores }] }, options: { responsive: true, plugins: { legend: { display: false } } } })
+  barChartInstance.value = new Chart(barCanvas.value, { type: 'bar', data: { labels, datasets: [{ label: 'Agendamentos por pet', data: valores, backgroundColor: cores }] }, options: { responsive: true, plugins: { legend: { display: false } } } })
   pieChartInstance.value = new Chart(pieCanvas.value, { type: 'doughnut', data: { labels, datasets: [{ data: valores, backgroundColor: cores }] }, options: { responsive: true } })
 }
 
@@ -317,16 +313,17 @@ async function salvarPet() {
   }
 }
 
-function editarVacina(id) { router.push(`/vacinas/editar/${id}`) }
+function editarAgendamento(id) { router.push(`/agendamentos/editar/${id}`) }
 
-function deletarVacina(id) {
-  $q.dialog({ title: 'Excluir vacina', message: 'Tem certeza que deseja excluir?', cancel: true, persistent: true })
-    .onOk(() => store.deletarVacina(id))
+function deletarAgendamento(id) {
+  $q.dialog({ title: 'Excluir agendamento', message: 'Tem certeza que deseja excluir?', cancel: true, persistent: true })
+    .onOk(() => store.deletarAgendamento(id))
 }
 
 function formatarData(data) { return new Date(`${data}T12:00:00`).toLocaleDateString('pt-BR') }
 function rolarPara(id) { document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }) }
-function recursoEmBreve(nome) { $q.notify({ message: `${nome} estará disponível em breve.`, color: 'blue-7', icon: 'info' }) }
+function rotuloTipo(tipo) { return ({ consulta: 'Consulta', vacina: 'Vacina', banho: 'Banho', tosa: 'Tosa', outro: 'Outro serviço' })[tipo] || 'Agendamento' }
+function corTipo(tipo) { return ({ consulta: 'blue-7', vacina: 'red-7', banho: 'cyan-7', tosa: 'purple-7', outro: 'grey-7' })[tipo] || 'green-7' }
 
 function logout() {
   // A remoção da sessão faz a guarda do roteador bloquear novamente as páginas protegidas.

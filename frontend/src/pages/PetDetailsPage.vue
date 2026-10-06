@@ -25,9 +25,7 @@
           </div>
           <div class="col-12 col-md-auto row q-gutter-sm">
             <q-btn outline color="green-8" icon="edit" label="Editar dados" @click="abrirEdicao" />
-            <!-- A agenda ainda usa o nome do pet; este atalho evita o preenchimento manual. -->
-            <q-btn unelevated color="green-7" icon="vaccines" label="Registrar vacina" @click="registrarVacina" />
-            <q-btn unelevated color="green-7" icon="event" label="Agendar consulta" @click="consultaEmBreve" />
+            <q-btn unelevated color="green-7" icon="event_available" label="Novo agendamento" @click="novoAgendamento" />
           </div>
         </section>
 
@@ -66,27 +64,28 @@
             </q-card>
 
             <q-card flat bordered>
-              <q-card-section><div class="text-h6">Histórico de consultas</div><div class="text-caption text-grey-7">Consultas serão exibidas aqui quando o módulo estiver disponível.</div></q-card-section>
+              <q-card-section><div class="text-h6">Próxima consulta</div><div class="text-caption text-grey-7">Acompanhamento clínico</div></q-card-section>
               <q-separator />
-              <q-card-section class="text-center text-grey-7 q-py-lg"><q-icon name="medical_services" size="32px" color="grey-5" /><div class="q-mt-sm">Nenhuma consulta registrada.</div></q-card-section>
+              <q-card-section v-if="proximaConsulta"><div class="text-subtitle1 text-weight-medium">{{ proximaConsulta.motivo_consulta || 'Consulta agendada' }}</div><div class="text-grey-7">{{ formatarData(proximaConsulta.data) }}</div></q-card-section>
+              <q-card-section v-else class="text-center text-grey-7 q-py-lg"><q-icon name="medical_services" size="32px" color="grey-5" /><div class="q-mt-sm">Nenhuma consulta agendada.</div></q-card-section>
             </q-card>
           </div>
         </section>
 
         <q-card flat bordered>
           <q-card-section class="row items-center justify-between">
-            <div><div class="text-h6">Histórico de vacinas</div><div class="text-caption text-grey-7">Vacinas agendadas e já realizadas para {{ pet.nome }}.</div></div>
-            <q-btn flat color="green-8" icon="add" label="Registrar vacina" @click="registrarVacina" />
+            <div><div class="text-h6">Histórico de agendamentos</div><div class="text-caption text-grey-7">Consultas, vacinas e serviços de {{ pet.nome }}.</div></div>
+            <q-btn flat color="green-8" icon="add" label="Novo agendamento" @click="novoAgendamento" />
           </q-card-section>
           <q-separator />
-          <q-list v-if="vacinas.length" separator>
-            <q-item v-for="vacina in vacinas" :key="vacina.id">
-              <q-item-section avatar><q-avatar color="green-1" text-color="green-8" icon="vaccines" /></q-item-section>
-              <q-item-section><q-item-label>{{ rotuloVacina(vacina) }}</q-item-label><q-item-label caption>{{ formatarData(vacina.data) }}<span v-if="vacina.local"> · {{ vacina.local }}</span></q-item-label></q-item-section>
-              <q-item-section side><q-btn flat round dense icon="edit" color="green-8" @click="router.push(`/vacinas/editar/${vacina.id}`)" /></q-item-section>
+          <q-list v-if="agendamentos.length" separator>
+            <q-item v-for="agendamento in agendamentos" :key="agendamento.id">
+              <q-item-section avatar><q-avatar color="green-1" text-color="green-8" :icon="iconeTipo(agendamento.tipo)" /></q-item-section>
+              <q-item-section><q-item-label>{{ rotuloAgendamento(agendamento) }}</q-item-label><q-item-label caption>{{ formatarData(agendamento.data) }}<span v-if="agendamento.local"> · {{ agendamento.local }}</span></q-item-label></q-item-section>
+              <q-item-section side><q-btn flat round dense icon="edit" color="green-8" @click="router.push(`/agendamentos/editar/${agendamento.id}`)" /></q-item-section>
             </q-item>
           </q-list>
-          <q-card-section v-else class="text-center text-grey-7 q-py-xl"><q-icon name="vaccines" size="38px" color="grey-5" /><div class="q-mt-sm">Nenhuma vacina registrada.</div></q-card-section>
+          <q-card-section v-else class="text-center text-grey-7 q-py-xl"><q-icon name="event_available" size="38px" color="grey-5" /><div class="q-mt-sm">Nenhum agendamento registrado.</div></q-card-section>
         </q-card>
       </template>
     </div>
@@ -124,7 +123,7 @@ const route = useRoute()
 const router = useRouter()
 const $q = useQuasar()
 const pet = ref(null)
-const vacinas = ref([])
+const agendamentos = ref([])
 const carregando = ref(true)
 const erro = ref('')
 const edicaoAberta = ref(false)
@@ -134,9 +133,10 @@ const form = reactive({ nome: '', especie: '', raca: '', idade: null, peso: null
 const idadeFormatada = computed(() => pet.value?.idade === null || pet.value?.idade === undefined ? 'Não informada' : `${pet.value.idade} ano(s)`)
 const pesoFormatado = computed(() => pet.value?.peso ? `${Number(pet.value.peso).toLocaleString('pt-BR')} kg` : 'Não informado')
 // O histórico é decrescente; para o alerta, selecionamos a data futura mais próxima.
-const proximaVacina = computed(() => vacinas.value
-  .filter((vacina) => new Date(`${vacina.data}T12:00:00`) >= inicioDoDia())
+const proximaVacina = computed(() => agendamentos.value
+  .filter((item) => item.tipo === 'vacina' && new Date(`${item.data}T12:00:00`) >= inicioDoDia())
   .sort((a, b) => a.data.localeCompare(b.data))[0])
+const proximaConsulta = computed(() => agendamentos.value.filter((item) => item.tipo === 'consulta' && new Date(`${item.data}T12:00:00`) >= inicioDoDia()).sort((a, b) => a.data.localeCompare(b.data))[0])
 const obrigatorio = (valor) => !!valor || 'Campo obrigatório'
 
 onMounted(carregarFicha)
@@ -144,12 +144,12 @@ onMounted(carregarFicha)
 async function carregarFicha() {
   carregando.value = true
   try {
-    const [respostaPet, respostaVacinas] = await Promise.all([
+    const [respostaPet, respostaAgendamentos] = await Promise.all([
       api.get(`/animais/${route.params.id}`),
-      api.get('/vacinas', { params: { usuario_id: obterUsuarioAutenticado()?.id } }).catch(() => ({ data: [] })),
+      api.get('/agendamentos', { params: { usuario_id: obterUsuarioAutenticado()?.id } }).catch(() => ({ data: [] })),
     ])
     pet.value = respostaPet.data
-    vacinas.value = respostaVacinas.data.filter((vacina) => normalizarNome(vacina.pet) === normalizarNome(pet.value.nome)).sort((a, b) => b.data.localeCompare(a.data))
+    agendamentos.value = respostaAgendamentos.data.filter((item) => normalizarNome(item.pet) === normalizarNome(pet.value.nome)).sort((a, b) => b.data.localeCompare(a.data))
   } catch (causa) {
     erro.value = causa?.response?.status === 404 ? 'Não encontramos este pet.' : 'Não foi possível carregar a ficha do pet.'
   } finally {
@@ -176,12 +176,13 @@ async function salvarEdicao() {
   }
 }
 
-function registrarVacina() { router.push({ path: '/vacinas/nova', query: { pet: pet.value.nome } }) }
-function consultaEmBreve() { $q.notify({ color: 'blue-7', icon: 'info', message: 'O agendamento de consultas será disponibilizado em breve.' }) }
+function novoAgendamento() { router.push({ path: '/agendamentos', query: { pet: pet.value.nome } }) }
 function inicioDoDia() { const data = new Date(); data.setHours(0, 0, 0, 0); return data }
 function formatarData(data) { return new Date(`${data}T12:00:00`).toLocaleDateString('pt-BR') }
 function normalizarNome(nome) { return String(nome || '').trim().toLocaleLowerCase('pt-BR') }
-function rotuloVacina(vacina) { return vacina.observacao || 'Vacina agendada' }
+function rotuloVacina(vacina) { return vacina.vacina || vacina.observacao || 'Vacina agendada' }
+function rotuloAgendamento(item) { return item.tipo === 'vacina' ? rotuloVacina(item) : item.motivo_consulta || item.servico_outro || ({ banho: 'Banho', tosa: 'Tosa' }[item.tipo] || 'Agendamento') }
+function iconeTipo(tipo) { return ({ consulta: 'medical_services', vacina: 'vaccines', banho: 'shower', tosa: 'content_cut' })[tipo] || 'event' }
 </script>
 
 <style scoped>

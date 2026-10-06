@@ -87,6 +87,28 @@ export const inicializarBancoDeDados = async () => {
       );
     `);
 
+    // Agenda unificada: comporta consulta, vacina e serviços de estética sem
+    // criar uma tabela para cada modalidade.
+    await executarConsulta(`
+      CREATE TABLE IF NOT EXISTS agendamentos (
+        id SERIAL PRIMARY KEY,
+        pet VARCHAR(255) NOT NULL,
+        tipo VARCHAR(30) NOT NULL CHECK (tipo IN ('consulta', 'vacina', 'banho', 'tosa', 'outro')),
+        data DATE NOT NULL,
+        horario TIME,
+        local VARCHAR(255) NOT NULL,
+        profissional VARCHAR(255),
+        observacao TEXT,
+        vacina VARCHAR(255),
+        motivo_consulta TEXT,
+        porte VARCHAR(30),
+        servico_outro VARCHAR(255),
+        usuario_id INTEGER REFERENCES usuarios(id),
+        origem_vacina_id INTEGER UNIQUE REFERENCES vacinas(id),
+        criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
     await executarConsulta(`
       DO $$
       BEGIN
@@ -106,6 +128,16 @@ export const inicializarBancoDeDados = async () => {
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'usuarios' AND column_name = 'telefone') THEN ALTER TABLE usuarios ADD COLUMN telefone VARCHAR(20); END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'usuarios' AND column_name = 'endereco') THEN ALTER TABLE usuarios ADD COLUMN endereco TEXT; END IF;
       END $$;
+    `);
+
+    // Preserva a agenda de vacinas criada nas versões anteriores.
+    await executarConsulta(`
+      INSERT INTO agendamentos (pet, tipo, data, horario, local, profissional, observacao, vacina, usuario_id, origem_vacina_id)
+      SELECT pet, 'vacina', data, horario, local, veterinario, observacao, observacao, usuario_id, id
+      FROM vacinas
+      WHERE NOT EXISTS (
+        SELECT 1 FROM agendamentos WHERE agendamentos.origem_vacina_id = vacinas.id
+      );
     `);
 
     console.log('Tabelas do banco de dados criadas/verificadas com sucesso.');
