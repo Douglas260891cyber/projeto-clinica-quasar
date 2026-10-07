@@ -74,7 +74,7 @@
               <q-item-section>
                 <q-item-label>{{ rotuloTipo(alerta.tipo) }} de {{ alerta.pet }}</q-item-label>
                 <q-item-label caption>{{ formatarData(alerta.data) }} às {{ alerta.horario || 'horário não informado'
-                }}</q-item-label>
+                  }}</q-item-label>
               </q-item-section>
             </q-item>
           </q-list>
@@ -165,7 +165,7 @@ import Chart from 'chart.js/auto'
 import { api } from 'src/services/api'
 import { obterUsuarioAutenticado } from 'src/services/auth'
 import { useAgendamentosStore } from 'src/stores/agendamentosStore'
-import { formatDateOnly } from 'src/utils/dates'
+import { formatDateOnly, parseDateOnly } from 'src/utils/dates'
 
 const router = useRouter()
 const $q = useQuasar()
@@ -192,10 +192,10 @@ const alertas = computed(() => {
   const limite = new Date(hoje)
   limite.setDate(limite.getDate() + 7)
   return store.lista.filter((evento) => {
-    if (!evento?.data) return false
-    const data = new Date(`${evento.data}T12:00:00`)
+    const data = parseDateOnly(evento?.data)
+    if (!data) return false
     return data >= hoje && data <= limite
-  }).sort((a, b) => a.data.localeCompare(b.data))
+  }).sort((a, b) => (parseDateOnly(a.data)?.getTime() ?? Infinity) - (parseDateOnly(b.data)?.getTime() ?? Infinity))
 })
 
 const cardsResumo = computed(() => [
@@ -235,8 +235,8 @@ async function carregarAnimais() {
 function eventosPorDia(diaNome) {
   const indiceDia = diasSemana.indexOf(diaNome)
   return eventosFiltrados.value.filter((evento) => {
-    if (!evento?.data) return false
-    return (new Date(`${evento.data}T12:00:00`).getDay() + 6) % 7 === indiceDia
+    const data = parseDateOnly(evento?.data)
+    return data && (data.getDay() + 6) % 7 === indiceDia
   })
 }
 
