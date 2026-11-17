@@ -13,7 +13,7 @@
             </div>
 
             <q-form @submit.prevent="cadastrar" class="q-gutter-md">
-              <q-input filled v-model="form.nome" label="Nome completo" dense
+              <q-input filled v-model="formulario.nome" label="Nome completo" dense
                 :rules="[val => !!val || 'Campo obrigatório']" />
               <q-input filled v-model="formulario.cpf" label="CPF" dense mask="###.###.###-##"
                 :rules="[val => !!val || 'Campo obrigatório']" />
