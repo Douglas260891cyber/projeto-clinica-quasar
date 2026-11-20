@@ -14,7 +14,7 @@
           <q-card flat bordered class="q-mb-lg rounded-borders">
             <q-card-section class="row items-center justify-between">
               <div class="text-h6">Novo agendamento</div>
-              <q-badge v-if="modoEdicao" color="green-7" label="Edição" />
+              <q-badge v-if="modoDeEdicao" color="green-7" label="Edição" />
             </q-card-section>
             <q-separator />
 
@@ -38,17 +38,17 @@
             <q-form class="q-pa-md q-gutter-md" @submit.prevent="salvar">
               <div class="row q-col-gutter-md">
                 <div class="col-12 col-sm-6">
-                  <q-select v-model="form.pet" outlined label="Pet *" :options="opcoesPets" :loading="carregandoPets"
-                    :rules="[obrigatorio]" />
+                  <q-select v-model="form.pet" outlined label="Pet *" :options="opcoesAnimais" :loading="carregandoPets"
+                    :rules="[validarObrigatorio]" />
                 </div>
                 <div class="col-6 col-sm-3">
-                  <q-input v-model="form.data" outlined type="date" label="Data *" :rules="[obrigatorio]" />
+                  <q-input v-model="form.data" outlined type="date" label="Data *" :rules="[validarObrigatorio]" />
                 </div>
                 <div class="col-6 col-sm-3">
                   <q-input v-model="form.horario" outlined type="time" label="Horário" />
                 </div>
                 <div class="col-12">
-                  <q-select v-model="form.local" outlined label="Local *" :options="locais" :rules="[obrigatorio]" />
+                  <q-select v-model="form.local" outlined label="Local *" :options="locais" :rules="[validarObrigatorio]" />
                 </div>
               </div>
 
@@ -75,16 +75,16 @@
 
               <div v-else class="service-fields">
                 <div class="text-subtitle1 text-green-9">Outros serviços</div>
-                <q-input v-model="form.servico_outro" outlined label="Qual serviço?" :rules="[obrigatorio]" />
+                <q-input v-model="form.servico_outro" outlined label="Qual serviço?" :rules="[validarObrigatorio]" />
                 <q-input v-model="form.profissional" outlined label="Profissional (opcional)" />
               </div>
 
               <q-input v-model="form.observacao" outlined type="textarea" label="Observações gerais" />
 
               <div class="row justify-end q-gutter-sm">
-                <q-btn flat label="Limpar" @click="resetarFormulario" />
+                <q-btn flat label="Limpar" @click="limparFormulario" />
                 <q-btn color="green-7" type="submit" :loading="salvando"
-                  :label="modoEdicao ? 'Salvar alterações' : 'Agendar serviço'" />
+                  :label="modoDeEdicao ? 'Salvar alterações' : 'Agendar serviço'" />
               </div>
             </q-form>
           </q-card>
@@ -124,7 +124,7 @@
                   <q-badge :color="corStatus(item)" :label="rotuloStatus(item)" class="q-mb-sm" />
                   <div class="row q-col-gutter-xs justify-end">
                     <q-btn flat dense round icon="edit" color="green-8" @click="carregarAgendamento(item.id)" />
-                    <q-btn flat dense round icon="delete" color="negative" @click="deletarAgendamento(item.id)" />
+                    <q-btn flat dense round icon="delete" color="negative" @click="excluirAgendamento(item.id)" />
                   </div>
                 </q-item-section>
               </q-item>
@@ -145,9 +145,9 @@
 import { computed, onMounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
-import { api } from 'src/services/api'
-import { obterUsuarioAutenticado } from 'src/services/auth'
-import { formatDateOnly, parseDateOnly } from 'src/utils/dates'
+import { api } from 'src/services/clienteApi'
+import { obterUsuarioAutenticado } from 'src/services/autenticacao'
+import { formatarData as formatarDataCompleta, interpretarData } from 'src/utils/datas'
 
 const router = useRouter()
 const route = useRoute()
@@ -171,7 +171,7 @@ const opcoesFiltroStatus = [
   { label: 'Realizado', value: 'realizado' },
 ]
 
-const opcoesPets = ref([])
+const opcoesAnimais = ref([])
 const carregandoPets = ref(true)
 const agendamentos = ref([])
 const filtroTipo = ref('todos')
@@ -192,23 +192,23 @@ const form = ref({
   servico_outro: '',
 })
 
-const itemEditandoId = computed(() => route.query.editar || route.params.id)
-const modoEdicao = computed(() => Boolean(itemEditandoId.value))
+const idItemEmEdicao = computed(() => route.query.editar || route.params.id)
+const modoDeEdicao = computed(() => Boolean(idItemEmEdicao.value))
 
 const agendamentosFiltrados = computed(() => {
   return [...agendamentos.value]
     .filter((item) => {
-      const tipoOk = filtroTipo.value === 'todos' || item.tipo === filtroTipo.value
-      const statusOk = filtroStatus.value === 'todos' || statusAgendamento(item) === filtroStatus.value
-      return tipoOk && statusOk
+      const tipoValido = filtroTipo.value === 'todos' || item.tipo === filtroTipo.value
+      const statusValido = filtroStatus.value === 'todos' || statusAgendamento(item) === filtroStatus.value
+      return tipoValido && statusValido
     })
-    .sort((a, b) => (parseDateOnly(a.data)?.getTime() ?? Infinity) - (parseDateOnly(b.data)?.getTime() ?? Infinity))
+    .sort((a, b) => (interpretarData(a.data)?.getTime() ?? Infinity) - (interpretarData(b.data)?.getTime() ?? Infinity))
 })
 
-const obrigatorio = (valor) => !!valor || 'Campo obrigatório'
+const validarObrigatorio = (valor) => !!valor || 'Campo obrigatório'
 
 onMounted(async () => {
-  await carregarPets()
+  await carregarAnimais()
   await carregarAgendamentos()
 
   if (route.query.pet) form.value.pet = String(route.query.pet)
@@ -216,15 +216,15 @@ onMounted(async () => {
     form.value.tipo = String(route.query.tipo)
   }
 
-  if (modoEdicao.value) {
-    await carregarAgendamento(itemEditandoId.value)
+  if (modoDeEdicao.value) {
+    await carregarAgendamento(idItemEmEdicao.value)
   }
 })
 
-async function carregarPets() {
+async function carregarAnimais() {
   try {
     const { data } = await api.get('/animais', { params: { usuario_id: usuario?.id } })
-    opcoesPets.value = data.map((pet) => pet.nome)
+    opcoesAnimais.value = data.map((pet) => pet.nome)
   } catch {
     $q.notify({ type: 'negative', message: 'Não foi possível carregar os pets.' })
   } finally {
@@ -250,7 +250,7 @@ async function carregarAgendamento(id) {
   }
 }
 
-function resetarFormulario() {
+function limparFormulario() {
   form.value = {
     pet: route.query.pet ? String(route.query.pet) : '',
     tipo: route.query.tipo && tipos.some((tipo) => tipo.value === route.query.tipo) ? String(route.query.tipo) : 'consulta',
@@ -272,8 +272,8 @@ async function salvar() {
   try {
     const payload = { ...form.value, usuario_id: usuario?.id }
 
-    if (modoEdicao.value) {
-      await api.put(`/agendamentos/${itemEditandoId.value}`, payload)
+    if (modoDeEdicao.value) {
+      await api.put(`/agendamentos/${idItemEmEdicao.value}`, payload)
       $q.notify({ type: 'positive', message: 'Agendamento atualizado com sucesso!' })
     } else {
       await api.post('/agendamentos', payload)
@@ -281,7 +281,7 @@ async function salvar() {
     }
 
     await carregarAgendamentos()
-    resetarFormulario()
+    limparFormulario()
     router.push('/agendamentos')
   } catch (erro) {
     $q.notify({ type: 'negative', message: erro.response?.data?.mensagem || 'Não foi possível salvar o agendamento.' })
@@ -290,7 +290,7 @@ async function salvar() {
   }
 }
 
-async function deletarAgendamento(id) {
+async function excluirAgendamento(id) {
   $q.dialog({
     title: 'Excluir agendamento',
     message: 'Tem certeza que deseja remover este agendamento?',
@@ -300,8 +300,8 @@ async function deletarAgendamento(id) {
     try {
       await api.delete(`/agendamentos/${id}`)
       await carregarAgendamentos()
-      if (Number(itemEditandoId.value) === Number(id)) {
-        resetarFormulario()
+      if (Number(idItemEmEdicao.value) === Number(id)) {
+        limparFormulario()
       }
       $q.notify({ type: 'positive', message: 'Agendamento removido com sucesso!' })
     } catch {
@@ -311,7 +311,7 @@ async function deletarAgendamento(id) {
 }
 
 function formatarData(valor) {
-  return formatDateOnly(valor)
+  return formatarDataCompleta(valor)
 }
 
 function descricaoItem(item) {
@@ -322,7 +322,7 @@ function descricaoItem(item) {
 }
 
 function statusAgendamento(item) {
-  const data = parseDateOnly(item?.data)
+  const data = interpretarData(item?.data)
   if (!data) return 'agendado'
   data.setHours(23, 59, 59, 999)
   const hoje = new Date()

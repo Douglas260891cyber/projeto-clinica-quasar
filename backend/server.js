@@ -3,7 +3,7 @@ import express from 'express';
 import path from 'path';
 import dotenv from 'dotenv';
 import rotas from './src/routes/index.js';
-import { inicializarBancoDeDados, testarConexao } from './src/config/database.js';
+import { inicializarBancoDeDados, testarConexao } from './src/config/bancoDeDados.js';
 
 dotenv.config({ path: path.resolve(process.cwd(), 'backend/.env') });
 

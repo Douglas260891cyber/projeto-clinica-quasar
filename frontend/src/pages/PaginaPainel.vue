@@ -40,7 +40,7 @@
           <!-- Cada pet possui seu próprio atalho; o dashboard não esconde os demais cadastrados. -->
           <q-list v-if="animais.length" separator>
             <q-item v-for="animal in animais" :key="animal.id" clickable v-ripple class="pet-highlight"
-              @click="abrirPet(animal.id)">
+              @click="abrirAnimal(animal.id)">
               <q-item-section avatar><q-avatar color="green-1" text-color="green-9" icon="pets" /></q-item-section>
               <q-item-section>
                 <q-item-label class="text-weight-medium">{{ animal.nome }}</q-item-label>
@@ -93,7 +93,7 @@
           <div class="text-caption text-grey-7">Consultas, vacinas e serviços</div>
         </div>
         <!-- O filtro facilita acompanhar a agenda de um pet específico. -->
-        <q-select v-model="petSelecionado" :options="opcoesPets" label="Filtrar por pet" dense outlined clearable
+        <q-select v-model="animalSelecionado" :options="opcoesAnimais" label="Filtrar por pet" dense outlined clearable
           class="filter-select" />
       </q-card-section>
       <q-separator />
@@ -109,7 +109,7 @@
               <div class="text-caption">{{ evento.local }} · {{ evento.horario || '--:--' }}</div>
               <div class="row justify-end q-mt-xs">
                 <q-btn flat dense round icon="edit" color="green-8" @click="editarAgendamento(evento.id)" />
-                <q-btn flat dense round icon="delete" color="negative" @click="deletarAgendamento(evento.id)" />
+                <q-btn flat dense round icon="delete" color="negative" @click="excluirAgendamento(evento.id)" />
               </div>
             </div>
             <div v-if="!eventosPorDia(dia).length" class="text-caption text-grey-7 text-center q-py-md">Sem eventos
@@ -126,19 +126,19 @@
       </q-card-section>
       <q-separator />
       <q-card-section class="row q-col-gutter-md">
-        <div class="col-12 col-md-6"><canvas ref="barCanvas" /></div>
-        <div class="col-12 col-md-6"><canvas ref="pieCanvas" /></div>
+        <div class="col-12 col-md-6"><canvas ref="canvasBarras" /></div>
+        <div class="col-12 col-md-6"><canvas ref="canvasSetores" /></div>
       </q-card-section>
     </q-card>
   </q-page>
 
   <!-- Cadastro rápido para que o estado vazio do dashboard tenha uma ação útil. -->
-  <q-dialog v-model="cadastroPetAberto" persistent>
+  <q-dialog v-model="cadastroAnimalAberto" persistent>
     <q-card style="width: 440px; max-width: 92vw">
       <q-card-section class="row items-center">
         <div class="text-h6">Cadastrar pet</div><q-space /><q-btn flat round icon="close" v-close-popup />
       </q-card-section>
-      <q-form @submit="salvarPet">
+      <q-form @submit="salvarAnimal">
         <q-card-section class="q-gutter-md">
           <q-input v-model="novoAnimal.nome" outlined label="Nome *" :rules="[val => !!val || 'Informe o nome']" />
           <q-input v-model="novoAnimal.especie" outlined label="Espécie *"
@@ -151,7 +151,7 @@
           <q-input v-model="novoAnimal.descricao" outlined label="Observações" type="textarea" />
         </q-card-section>
         <q-card-actions align="right"><q-btn flat label="Cancelar" v-close-popup /><q-btn color="green-7"
-            label="Salvar pet" type="submit" :loading="salvandoPet" /></q-card-actions>
+            label="Salvar pet" type="submit" :loading="salvandoAnimal" /></q-card-actions>
       </q-form>
     </q-card>
   </q-dialog>
@@ -162,28 +162,28 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import Chart from 'chart.js/auto'
-import { api } from 'src/services/api'
-import { obterUsuarioAutenticado } from 'src/services/auth'
+import { api } from 'src/services/clienteApi'
+import { obterUsuarioAutenticado } from 'src/services/autenticacao'
 import { useAgendamentosStore } from 'src/stores/agendamentosStore'
-import { formatDateOnly, parseDateOnly } from 'src/utils/dates'
+import { formatarData as formatarDataCompleta, interpretarData } from 'src/utils/datas'
 
 const router = useRouter()
 const $q = useQuasar()
 const store = useAgendamentosStore()
-const cadastroPetAberto = ref(false)
-const salvandoPet = ref(false)
-const petSelecionado = ref(null)
+const cadastroAnimalAberto = ref(false)
+const salvandoAnimal = ref(false)
+const animalSelecionado = ref(null)
 const animais = ref([])
-const barCanvas = ref(null)
-const pieCanvas = ref(null)
-const barChartInstance = ref(null)
-const pieChartInstance = ref(null)
+const canvasBarras = ref(null)
+const canvasSetores = ref(null)
+const instanciaGraficoBarras = ref(null)
+const instanciaGraficoSetores = ref(null)
 const usuario = obterUsuarioAutenticado() || {}
 const novoAnimal = reactive({ nome: '', especie: '', idade: null, raca: '', peso: null, foto_url: '', descricao: '' })
 const diasSemana = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo']
 
-const opcoesPets = computed(() => [...new Set(store.semana.map((evento) => evento.pet).filter(Boolean))])
-const eventosFiltrados = computed(() => store.semana.filter((evento) => !petSelecionado.value || evento.pet === petSelecionado.value))
+const opcoesAnimais = computed(() => [...new Set(store.semana.map((evento) => evento.pet).filter(Boolean))])
+const eventosFiltrados = computed(() => store.semana.filter((evento) => !animalSelecionado.value || evento.pet === animalSelecionado.value))
 
 // Alertas são calculados a partir da agenda, evitando informações fixas no template.
 const alertas = computed(() => {
@@ -192,10 +192,10 @@ const alertas = computed(() => {
   const limite = new Date(hoje)
   limite.setDate(limite.getDate() + 7)
   return store.lista.filter((evento) => {
-    const data = parseDateOnly(evento?.data)
+    const data = interpretarData(evento?.data)
     if (!data) return false
     return data >= hoje && data <= limite
-  }).sort((a, b) => (parseDateOnly(a.data)?.getTime() ?? Infinity) - (parseDateOnly(b.data)?.getTime() ?? Infinity))
+  }).sort((a, b) => (interpretarData(a.data)?.getTime() ?? Infinity) - (interpretarData(b.data)?.getTime() ?? Infinity))
 })
 
 const cardsResumo = computed(() => [
@@ -218,8 +218,8 @@ watch(eventosFiltrados, async () => {
 }, { deep: true })
 
 onBeforeUnmount(() => {
-  barChartInstance.value?.destroy()
-  pieChartInstance.value?.destroy()
+  instanciaGraficoBarras.value?.destroy()
+  instanciaGraficoSetores.value?.destroy()
 })
 
 async function carregarAnimais() {
@@ -235,13 +235,13 @@ async function carregarAnimais() {
 function eventosPorDia(diaNome) {
   const indiceDia = diasSemana.indexOf(diaNome)
   return eventosFiltrados.value.filter((evento) => {
-    const data = parseDateOnly(evento?.data)
+    const data = interpretarData(evento?.data)
     return data && (data.getDay() + 6) % 7 === indiceDia
   })
 }
 
 function criarGraficos() {
-  if (!barCanvas.value || !pieCanvas.value) return
+  if (!canvasBarras.value || !canvasSetores.value) return
   const quantidadePorPet = eventosFiltrados.value.reduce((acumulador, evento) => {
     acumulador[evento.pet] = (acumulador[evento.pet] || 0) + 1
     return acumulador
@@ -250,43 +250,43 @@ function criarGraficos() {
   const valores = Object.values(quantidadePorPet)
   const cores = ['#43a047', '#8bc34a', '#ffb300', '#e53935', '#1e88e5']
 
-  barChartInstance.value?.destroy()
-  pieChartInstance.value?.destroy()
-  barChartInstance.value = new Chart(barCanvas.value, { type: 'bar', data: { labels, datasets: [{ label: 'Agendamentos por pet', data: valores, backgroundColor: cores }] }, options: { responsive: true, plugins: { legend: { display: false } } } })
-  pieChartInstance.value = new Chart(pieCanvas.value, { type: 'doughnut', data: { labels, datasets: [{ data: valores, backgroundColor: cores }] }, options: { responsive: true } })
+  instanciaGraficoBarras.value?.destroy()
+  instanciaGraficoSetores.value?.destroy()
+  instanciaGraficoBarras.value = new Chart(canvasBarras.value, { type: 'bar', data: { labels, datasets: [{ label: 'Agendamentos por pet', data: valores, backgroundColor: cores }] }, options: { responsive: true, plugins: { legend: { display: false } } } })
+  instanciaGraficoSetores.value = new Chart(canvasSetores.value, { type: 'doughnut', data: { labels, datasets: [{ data: valores, backgroundColor: cores }] }, options: { responsive: true } })
 }
 
 function abrirCadastroPet() {
-  cadastroPetAberto.value = true
+  cadastroAnimalAberto.value = true
 }
 
-function abrirPet(id) {
+function abrirAnimal(id) {
   router.push(`/pets/${id}`)
 }
 
-async function salvarPet() {
-  salvandoPet.value = true
+async function salvarAnimal() {
+  salvandoAnimal.value = true
   try {
     const { data: dados } = await api.post('/animais', { ...novoAnimal, usuario_id: usuario.id })
     animais.value.push(dados.animal)
     Object.assign(novoAnimal, { nome: '', especie: '', idade: null, raca: '', peso: null, foto_url: '', descricao: '' })
-    cadastroPetAberto.value = false
+    cadastroAnimalAberto.value = false
     $q.notify({ type: 'positive', message: 'Pet cadastrado com sucesso!' })
   } catch (erro) {
     $q.notify({ type: 'negative', message: erro?.response?.data?.mensagem || 'Não foi possível cadastrar o pet.' })
   } finally {
-    salvandoPet.value = false
+    salvandoAnimal.value = false
   }
 }
 
 function editarAgendamento(id) { router.push(`/agendamentos/editar/${id}`) }
 
-function deletarAgendamento(id) {
+function excluirAgendamento(id) {
   $q.dialog({ title: 'Excluir agendamento', message: 'Tem certeza que deseja excluir?', cancel: true, persistent: true })
-    .onOk(() => store.deletarAgendamento(id))
+    .onOk(() => store.excluirAgendamento(id))
 }
 
-function formatarData(data) { return formatDateOnly(data) }
+function formatarData(data) { return formatarDataCompleta(data) }
 function rotuloTipo(tipo) { return ({ consulta: 'Consulta', vacina: 'Vacina', banho: 'Banho', tosa: 'Tosa', outro: 'Outro serviço' })[tipo] || 'Agendamento' }
 function corTipo(tipo) { return ({ consulta: 'blue-7', vacina: 'red-7', banho: 'cyan-7', tosa: 'purple-7', outro: 'grey-7' })[tipo] || 'green-7' }
 </script>

@@ -1,5 +1,5 @@
 import express from 'express';
-import { cadastrarUsuario, entrarUsuario, obterPerfil, atualizarPerfil, alterarSenha } from '../controllers/authController.js';
+import { cadastrarUsuario, entrarUsuario, obterPerfil, atualizarPerfil, alterarSenha } from '../controllers/controladorAutenticacao.js';
 
 const roteador = express.Router();
 

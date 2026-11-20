@@ -1,6 +1,6 @@
 // Serviço responsável pela lógica de autenticação e persistência de usuários.
 import bcrypt from 'bcrypt';
-import { executarConsulta } from '../config/database.js';
+import { executarConsulta } from '../config/bancoDeDados.js';
 
 // Cria um novo usuário com senha criptografada no banco.
 export const criarUsuario = async ({ nome, email, senha, cpf, data_nascimento }) => {

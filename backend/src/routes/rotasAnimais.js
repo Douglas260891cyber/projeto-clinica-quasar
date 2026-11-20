@@ -1,5 +1,5 @@
 import express from 'express';
-import { obterAnimal, obterAnimais, atualizarAnimal, cadastrarAnimal } from '../controllers/petController.js';
+import { obterAnimal, obterAnimais, atualizarAnimal, cadastrarAnimal } from '../controllers/controladorAnimais.js';
 
 const roteador = express.Router();
 

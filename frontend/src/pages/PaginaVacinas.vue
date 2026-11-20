@@ -10,11 +10,11 @@
 
       <!-- PET -->
       <q-card-section>
-        <q-select filled v-model="form.pet" :options="opcoesPets" label="Pet *" color="green-7"
-          :loading="carregandoPets" :disable="!opcoesPets.length" :rules="[val => !!val || 'Campo obrigatório']">
+        <q-select filled v-model="form.pet" :options="opcoesAnimais" label="Pet *" color="green-7"
+          :loading="carregandoPets" :disable="!opcoesAnimais.length" :rules="[val => !!val || 'Campo obrigatório']">
           <template #no-option><q-item><q-item-section class="text-grey">Nenhum pet cadastrado para esta conta.</q-item-section></q-item></template>
         </q-select>
-        <div v-if="!carregandoPets && !opcoesPets.length" class="text-caption text-orange-9 q-mt-sm">Cadastre um pet antes de agendar uma vacina.</div>
+        <div v-if="!carregandoPets && !opcoesAnimais.length" class="text-caption text-orange-9 q-mt-sm">Cadastre um pet antes de agendar uma vacina.</div>
       </q-card-section>
 
       <!-- DATA E HORÁRIO -->
@@ -63,14 +63,14 @@
 import { ref, onMounted, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useQuasar } from "quasar";
-import { api } from "src/services/api";
-import { obterUsuarioAutenticado } from "src/services/auth";
+import { api } from "src/services/clienteApi";
+import { obterUsuarioAutenticado } from "src/services/autenticacao";
 
 const $q = useQuasar();
 const router = useRouter();
 const route = useRoute();
 const usuario = obterUsuarioAutenticado();
-const opcoesPets = ref([]);
+const opcoesAnimais = ref([]);
 const carregandoPets = ref(true);
 
 // --------------------------
@@ -109,7 +109,7 @@ const form = ref({
 onMounted(async () => {
   try {
     const { data } = await api.get('/animais', { params: { usuario_id: usuario?.id } });
-    opcoesPets.value = data.map((pet) => pet.nome);
+    opcoesAnimais.value = data.map((pet) => pet.nome);
   } catch {
     $q.notify({ type: 'negative', message: 'Não foi possível carregar seus pets.' });
   } finally {

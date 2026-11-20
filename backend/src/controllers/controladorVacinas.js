@@ -1,4 +1,4 @@
-import { atualizarVacinaPorId, buscarVacinaPorId, criarVacina, excluirVacinaPorId, listarVacinas } from '../services/vaccineService.js';
+import { atualizarVacinaPorId, buscarVacinaPorId, criarVacina, excluirVacinaPorId, listarVacinas } from '../services/servicoVacinas.js';
 
 const validar = ({ pet, data, local }) => pet && data && local;
 

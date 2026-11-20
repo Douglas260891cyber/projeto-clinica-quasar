@@ -3,17 +3,17 @@
     <q-header class="bg-white text-grey-9 shadow-1">
       <q-toolbar>
         <q-btn flat round dense icon="menu" class="lt-md" aria-label="Abrir menu"
-          @click="leftDrawerOpen = !leftDrawerOpen" />
+          @click="menuLateralAberto = !menuLateralAberto" />
         <q-toolbar-title class="text-weight-bold text-green-9">Clínica Pet</q-toolbar-title>
         <div class="gt-xs text-body2 q-mr-sm">Olá, {{ primeiroNome }}</div>
         <q-avatar color="green-6" text-color="white" size="34px">{{ iniciaisUsuario }}</q-avatar>
-        <q-btn flat round dense icon="logout" color="negative" class="q-ml-sm" aria-label="Sair" @click="logout">
+        <q-btn flat round dense icon="logout" color="negative" class="q-ml-sm" aria-label="Sair" @click="sairDaConta">
           <q-tooltip>Sair da conta</q-tooltip>
         </q-btn>
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="leftDrawerOpen" show-if-above :width="250" bordered class="bg-green-7 text-white">
+    <q-drawer v-model="menuLateralAberto" show-if-above :width="250" bordered class="bg-green-7 text-white">
       <div class="drawer-content q-pa-md">
         <q-avatar size="82px" class="bg-white text-green-8 q-mb-sm">{{ iniciaisUsuario }}</q-avatar>
         <div class="text-h6">{{ usuario.nome || 'Usuário' }}</div>
@@ -50,9 +50,9 @@
 import { computed, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
-import { limparUsuarioAutenticado, obterUsuarioAutenticado } from 'src/services/auth'
+import { limparUsuarioAutenticado, obterUsuarioAutenticado } from 'src/services/autenticacao'
 
-const leftDrawerOpen = ref(false)
+const menuLateralAberto = ref(false)
 const usuario = obterUsuarioAutenticado() || {}
 const $q = useQuasar()
 const router = useRouter()
@@ -60,7 +60,7 @@ const dataAtual = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: '2-di
 const primeiroNome = computed(() => usuario.nome?.split(' ')[0] || 'usuário')
 const iniciaisUsuario = computed(() => (usuario.nome || 'U').split(' ').map((nome) => nome[0]).slice(0, 2).join('').toUpperCase())
 
-function logout() {
+function sairDaConta() {
   limparUsuarioAutenticado()
   router.replace('/')
   $q.notify({ type: 'positive', message: 'Você saiu da conta.' })

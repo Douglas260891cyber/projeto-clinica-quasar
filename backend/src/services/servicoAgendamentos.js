@@ -1,4 +1,4 @@
-import { executarConsulta } from '../config/database.js';
+import { executarConsulta } from '../config/bancoDeDados.js';
 
 const campos = ['pet', 'tipo', 'data', 'horario', 'local', 'profissional', 'observacao', 'vacina', 'motivo_consulta', 'porte', 'servico_outro'];
 

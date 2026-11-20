@@ -130,12 +130,12 @@
           <div class="text-h6">Editar dados de {{ pet?.nome }}</div><q-space /><q-btn flat round icon="close"
             v-close-popup />
         </q-card-section>
-        <q-form @submit="salvarEdicao">
+        <q-form @submit="salvarAlteracoes">
           <q-card-section class="row q-col-gutter-md">
-            <div class="col-12 col-sm-6"><q-input v-model="form.nome" outlined label="Nome *" :rules="[obrigatorio]" />
+            <div class="col-12 col-sm-6"><q-input v-model="form.nome" outlined label="Nome *" :rules="[validarObrigatorio]" />
             </div>
             <div class="col-12 col-sm-6"><q-input v-model="form.especie" outlined label="Espécie *"
-                :rules="[obrigatorio]" /></div>
+                :rules="[validarObrigatorio]" /></div>
             <div class="col-12 col-sm-6"><q-input v-model="form.raca" outlined label="Raça" /></div>
             <div class="col-12 col-sm-6"><q-input v-model.number="form.idade" outlined type="number" min="0"
                 label="Idade (anos)" /></div>
@@ -157,9 +157,9 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
-import { api } from 'src/services/api'
-import { obterUsuarioAutenticado } from 'src/services/auth'
-import { formatDateOnly } from 'src/utils/dates'
+import { api } from 'src/services/clienteApi'
+import { obterUsuarioAutenticado } from 'src/services/autenticacao'
+import { formatarData as formatarDataCompleta } from 'src/utils/datas'
 
 const route = useRoute()
 const router = useRouter()
@@ -179,7 +179,7 @@ const proximaVacina = computed(() => agendamentos.value
   .filter((item) => item.tipo === 'vacina' && new Date(`${item.data}T12:00:00`) >= inicioDoDia())
   .sort((a, b) => a.data.localeCompare(b.data))[0])
 const proximaConsulta = computed(() => agendamentos.value.filter((item) => item.tipo === 'consulta' && new Date(`${item.data}T12:00:00`) >= inicioDoDia()).sort((a, b) => a.data.localeCompare(b.data))[0])
-const obrigatorio = (valor) => !!valor || 'Campo obrigatório'
+const validarObrigatorio = (valor) => !!valor || 'Campo obrigatório'
 
 onMounted(carregarFicha)
 
@@ -209,7 +209,7 @@ function abrirEdicao() {
   edicaoAberta.value = true
 }
 
-async function salvarEdicao() {
+async function salvarAlteracoes() {
   salvando.value = true
   try {
     const { data } = await api.put(`/animais/${pet.value.id}`, form)
@@ -225,7 +225,7 @@ async function salvarEdicao() {
 
 function novoAgendamento() { router.push({ path: '/agendamentos', query: { pet: pet.value.nome } }) }
 function inicioDoDia() { const data = new Date(); data.setHours(0, 0, 0, 0); return data }
-function formatarData(data) { return formatDateOnly(data) }
+function formatarData(data) { return formatarDataCompleta(data) }
 function normalizarNome(nome) { return String(nome || '').trim().toLocaleLowerCase('pt-BR') }
 function rotuloVacina(vacina) { return vacina.vacina || vacina.observacao || 'Vacina agendada' }
 function rotuloAgendamento(item) { return item.tipo === 'vacina' ? rotuloVacina(item) : item.motivo_consulta || item.servico_outro || ({ banho: 'Banho', tosa: 'Tosa' }[item.tipo] || 'Agendamento') }

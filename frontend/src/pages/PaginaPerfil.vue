@@ -35,15 +35,15 @@
               <q-form @submit="salvarPerfil">
                 <q-card-section class="row q-col-gutter-md">
                   <div class="col-12"><q-input v-model.trim="perfil.nome" outlined label="Nome completo *"
-                      :rules="[obrigatorio]" /></div>
+                      :rules="[validarObrigatorio]" /></div>
                   <div class="col-12 col-sm-6"><q-input v-model.trim="perfil.email" outlined type="email"
-                      label="E-mail *" :rules="[obrigatorio]" /></div>
+                      label="E-mail *" :rules="[validarObrigatorio]" /></div>
                   <div class="col-12 col-sm-6"><q-input v-model="perfil.telefone" outlined label="Telefone / WhatsApp"
                       mask="(##) #####-####" unmasked-value /></div>
                   <div class="col-12 col-sm-6"><q-input v-model="perfil.cpf" outlined label="CPF *"
-                      mask="###.###.###-##" unmasked-value :rules="[obrigatorio]" /></div>
+                      mask="###.###.###-##" unmasked-value :rules="[validarObrigatorio]" /></div>
                   <div class="col-12 col-sm-6"><q-input v-model="perfil.data_nascimento" outlined type="date"
-                      label="Data de nascimento *" :rules="[obrigatorio]" /></div>
+                      label="Data de nascimento *" :rules="[validarObrigatorio]" /></div>
                   <div class="col-12"><q-input v-model.trim="perfil.endereco" outlined label="Endereço"
                       placeholder="Rua, número, bairro e cidade" /></div>
                 </q-card-section>
@@ -90,7 +90,7 @@
           <div class="text-h6">Alterar senha</div><q-space /><q-btn flat round icon="close" v-close-popup />
         </q-card-section><q-form @submit="salvarSenha"><q-card-section class="q-gutter-md"><q-input
               v-model="senha.senhaAtual" outlined :type="mostrarSenha ? 'text' : 'password'" label="Senha atual"
-              :rules="[obrigatorio]" /><q-input v-model="senha.novaSenha" outlined
+              :rules="[validarObrigatorio]" /><q-input v-model="senha.novaSenha" outlined
               :type="mostrarSenha ? 'text' : 'password'" label="Nova senha"
               :rules="[val => val?.length >= 6 || 'Use ao menos 6 caracteres']" /><q-input v-model="senha.confirmacao"
               outlined :type="mostrarSenha ? 'text' : 'password'" label="Confirmar nova senha"
@@ -105,8 +105,8 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
-import { api } from 'src/services/api'
-import { limparUsuarioAutenticado, obterUsuarioAutenticado, salvarUsuarioAutenticado } from 'src/services/auth'
+import { api } from 'src/services/clienteApi'
+import { limparUsuarioAutenticado, obterUsuarioAutenticado, salvarUsuarioAutenticado } from 'src/services/autenticacao'
 
 const $q = useQuasar()
 const router = useRouter()
@@ -114,7 +114,7 @@ const usuarioSessao = obterUsuarioAutenticado()
 const perfil = reactive({ nome: '', email: '', cpf: '', data_nascimento: '', telefone: '', endereco: '', criado_em: '' })
 const senha = reactive({ senhaAtual: '', novaSenha: '', confirmacao: '' })
 const carregando = ref(true), salvando = ref(false), salvandoSenha = ref(false), dialogSenha = ref(false), mostrarSenha = ref(false), erro = ref(''), totalPets = ref(0)
-const obrigatorio = val => !!val || 'Campo obrigatório'
+const validarObrigatorio = val => !!val || 'Campo obrigatório'
 const iniciais = computed(() => perfil.nome.split(' ').filter(Boolean).slice(0, 2).map(nome => nome[0]).join('').toUpperCase() || 'U')
 const dataCadastro = computed(() => perfil.criado_em ? new Date(perfil.criado_em).toLocaleDateString('pt-BR') : 'Não informada')
 

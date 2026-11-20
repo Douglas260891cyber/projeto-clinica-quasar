@@ -46,15 +46,15 @@
       <q-card-section class="row items-center">
         <div class="text-h6">Cadastrar pet</div><q-space /><q-btn flat round icon="close" v-close-popup />
       </q-card-section>
-      <q-form @submit="salvarPet">
+      <q-form @submit="salvarAnimal">
         <q-card-section class="q-gutter-md">
-          <q-input v-model="novoPet.nome" outlined label="Nome *" :rules="[obrigatorio]" />
-          <q-input v-model="novoPet.especie" outlined label="Espécie *" :rules="[obrigatorio]" />
-          <q-input v-model.number="novoPet.idade" outlined type="number" min="0" label="Idade" />
-          <q-input v-model="novoPet.raca" outlined label="Raça" />
-          <q-input v-model.number="novoPet.peso" outlined type="number" min="0" step="0.01" suffix="kg" label="Peso" />
-          <q-input v-model.trim="novoPet.foto_url" outlined type="url" label="URL da foto" hint="Opcional" />
-          <q-input v-model="novoPet.descricao" outlined type="textarea" label="Observações" />
+          <q-input v-model="novoAnimal.nome" outlined label="Nome *" :rules="[validarObrigatorio]" />
+          <q-input v-model="novoAnimal.especie" outlined label="Espécie *" :rules="[validarObrigatorio]" />
+          <q-input v-model.number="novoAnimal.idade" outlined type="number" min="0" label="Idade" />
+          <q-input v-model="novoAnimal.raca" outlined label="Raça" />
+          <q-input v-model.number="novoAnimal.peso" outlined type="number" min="0" step="0.01" suffix="kg" label="Peso" />
+          <q-input v-model.trim="novoAnimal.foto_url" outlined type="url" label="URL da foto" hint="Opcional" />
+          <q-input v-model="novoAnimal.descricao" outlined type="textarea" label="Observações" />
         </q-card-section>
         <q-card-actions align="right"><q-btn flat label="Cancelar" v-close-popup /><q-btn color="green-7"
             label="Salvar pet" type="submit" :loading="salvando" /></q-card-actions>
@@ -67,8 +67,8 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
-import { api } from 'src/services/api'
-import { obterUsuarioAutenticado } from 'src/services/auth'
+import { api } from 'src/services/clienteApi'
+import { obterUsuarioAutenticado } from 'src/services/autenticacao'
 
 const router = useRouter()
 const $q = useQuasar()
@@ -77,18 +77,18 @@ const carregando = ref(true)
 const erro = ref('')
 const cadastroAberto = ref(false)
 const salvando = ref(false)
-const novoPet = reactive({ nome: '', especie: '', idade: null, raca: '', peso: null, foto_url: '', descricao: '' })
-const obrigatorio = (valor) => !!valor || 'Campo obrigatório'
+const novoAnimal = reactive({ nome: '', especie: '', idade: null, raca: '', peso: null, foto_url: '', descricao: '' })
+const validarObrigatorio = (valor) => !!valor || 'Campo obrigatório'
 const usuario = obterUsuarioAutenticado()
 
-onMounted(carregarPets)
+onMounted(carregarAnimais)
 
 function voltar() {
   if (window.history.state?.back) router.back()
   else router.replace('/dashboard')
 }
 
-async function carregarPets() {
+async function carregarAnimais() {
   carregando.value = true
   try {
     const { data } = await api.get('/animais', { params: { usuario_id: usuario?.id } })
@@ -100,12 +100,12 @@ async function carregarPets() {
   }
 }
 
-async function salvarPet() {
+async function salvarAnimal() {
   salvando.value = true
   try {
-    const { data } = await api.post('/animais', { ...novoPet, usuario_id: usuario?.id })
+    const { data } = await api.post('/animais', { ...novoAnimal, usuario_id: usuario?.id })
     animais.value.push(data.animal)
-    Object.assign(novoPet, { nome: '', especie: '', idade: null, raca: '', peso: null, foto_url: '', descricao: '' })
+    Object.assign(novoAnimal, { nome: '', especie: '', idade: null, raca: '', peso: null, foto_url: '', descricao: '' })
     cadastroAberto.value = false
     $q.notify({ type: 'positive', message: 'Pet cadastrado com sucesso!' })
   } catch (causa) {

@@ -1,4 +1,4 @@
-import { executarConsulta } from '../config/database.js';
+import { executarConsulta } from '../config/bancoDeDados.js';
 
 export const listarVacinas = async (usuarioId) => {
   const resultado = usuarioId

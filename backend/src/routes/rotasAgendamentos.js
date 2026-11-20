@@ -1,5 +1,5 @@
 import express from 'express';
-import { atualizarAgendamento, cadastrarAgendamento, excluirAgendamento, obterAgendamento, obterAgendamentos } from '../controllers/appointmentController.js';
+import { atualizarAgendamento, cadastrarAgendamento, excluirAgendamento, obterAgendamento, obterAgendamentos } from '../controllers/controladorAgendamentos.js';
 
 const roteador = express.Router();
 roteador.get('/', obterAgendamentos);

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import { api } from 'src/services/api'
-import { obterUsuarioAutenticado } from 'src/services/auth'
+import { api } from 'src/services/clienteApi'
+import { obterUsuarioAutenticado } from 'src/services/autenticacao'
 
 export const useVacinasStore = defineStore('vacinas', {
   state: () => ({
@@ -35,10 +35,10 @@ export const useVacinasStore = defineStore('vacinas', {
     filtrarSemana() {
       // Recebe uma referência para hoje e calcula segunda (inicio) e domingo (fim)
       const hoje = new Date()
-      // dayIndex: 0 => segunda, 1 => terça, ..., 6 => domingo
-      const dayIndex = (hoje.getDay() + 6) % 7
+      // indiceDia: 0 => segunda, 1 => terça, ..., 6 => domingo
+      const indiceDia = (hoje.getDay() + 6) % 7
       const inicio = new Date(hoje)
-      inicio.setDate(hoje.getDate() - dayIndex)
+      inicio.setDate(hoje.getDate() - indiceDia)
       inicio.setHours(0, 0, 0, 0)
 
       const fim = new Date(inicio)
@@ -51,8 +51,8 @@ export const useVacinasStore = defineStore('vacinas', {
 
         // garante parsing sem problemas de fuso (trata 'YYYY-MM-DD' como local)
         // se seus dados já tiverem timezone, adapte conforme necessário
-        const dataEv = new Date(ev.data + 'T12:00:00') // meio-dia evita cross-day por timezone
-        const ts = dataEv.getTime()
+        const dataEvento = new Date(ev.data + 'T12:00:00') // meio-dia evita cross-day por timezone
+        const ts = dataEvento.getTime()
         return ts >= inicio.getTime() && ts <= fim.getTime()
       })
     },
@@ -62,7 +62,7 @@ export const useVacinasStore = defineStore('vacinas', {
       this.filtrarSemana()
     },
 
-    async deletarVacina(id) {
+    async excluirVacina(id) {
       try {
         await api.delete(`/vacinas/${id}`)
         // remove da lista
@@ -74,11 +74,11 @@ export const useVacinasStore = defineStore('vacinas', {
       }
     },
 
-    selecionarParaEdicao(vacina) {
+    selecionarParaAlteracao(vacina) {
       this.selecionada = { ...vacina } // cópia para formulário
     },
 
-    async salvarEdicao() {
+    async salvarAlteracoes() {
       if (!this.selecionada?.id) return
 
       try {

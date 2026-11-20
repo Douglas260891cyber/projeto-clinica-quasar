@@ -1,5 +1,5 @@
 // Controlador responsável por receber as requisições de autenticação e repassar para o serviço.
-import { criarUsuario, buscarUsuarioPorEmail, verificarSenha, buscarUsuarioPorId, atualizarUsuarioPorId, atualizarSenhaUsuario } from '../services/authService.js';
+import { criarUsuario, buscarUsuarioPorEmail, verificarSenha, buscarUsuarioPorId, atualizarUsuarioPorId, atualizarSenhaUsuario } from '../services/servicoAutenticacao.js';
 
 // Cadastra um novo usuário no sistema.
 export const cadastrarUsuario = async (requisicao, resposta) => {

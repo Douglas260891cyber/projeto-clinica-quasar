@@ -1,5 +1,5 @@
 import express from 'express';
-import { atualizarVacina, cadastrarVacina, excluirVacina, obterVacina, obterVacinas } from '../controllers/vaccineController.js';
+import { atualizarVacina, cadastrarVacina, excluirVacina, obterVacina, obterVacinas } from '../controllers/controladorVacinas.js';
 
 const roteador = express.Router();
 roteador.get('/', obterVacinas);

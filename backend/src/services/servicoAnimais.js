@@ -1,5 +1,5 @@
 // Serviço responsável por acessar os dados de animais no banco.
-import { executarConsulta } from '../config/database.js';
+import { executarConsulta } from '../config/bancoDeDados.js';
 
 // Lista todos os animais cadastrados em ordem crescente de ID.
 export const listarAnimais = async (usuarioId) => {

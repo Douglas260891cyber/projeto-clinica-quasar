@@ -41,7 +41,7 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Notify } from 'quasar'
-import { api } from 'src/services/api'
+import { api } from 'src/services/clienteApi'
 
 const router = useRouter()
 const carregando = ref(false)

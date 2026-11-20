@@ -1,8 +1,8 @@
 import express from 'express';
-import rotasAutenticacao from './authRoutes.js';
-import rotasAnimais from './petRoutes.js';
-import rotasVacinas from './vaccineRoutes.js';
-import rotasAgendamentos from './appointmentRoutes.js';
+import rotasAutenticacao from './rotasAutenticacao.js';
+import rotasAnimais from './rotasAnimais.js';
+import rotasVacinas from './rotasVacinas.js';
+import rotasAgendamentos from './rotasAgendamentos.js';
 
 const roteador = express.Router();
 

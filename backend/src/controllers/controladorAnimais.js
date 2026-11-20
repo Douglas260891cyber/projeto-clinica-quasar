@@ -1,5 +1,5 @@
 // Controlador responsável pelas operações de animais recebidas pela API.
-import { atualizarAnimalPorId, buscarAnimalPorId, criarAnimal, listarAnimais } from '../services/petService.js';
+import { atualizarAnimalPorId, buscarAnimalPorId, criarAnimal, listarAnimais } from '../services/servicoAnimais.js';
 
 // Busca e retorna todos os animais cadastrados.
 export const obterAnimais = async (requisicao, resposta) => {

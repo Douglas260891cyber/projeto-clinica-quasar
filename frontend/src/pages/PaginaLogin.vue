@@ -62,8 +62,8 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Notify } from 'quasar'
-import { api } from 'src/services/api'
-import { salvarUsuarioAutenticado } from 'src/services/auth'
+import { api } from 'src/services/clienteApi'
+import { salvarUsuarioAutenticado } from 'src/services/autenticacao'
 import pets from 'src/assets/pets.png'
 
 const email = ref('')
