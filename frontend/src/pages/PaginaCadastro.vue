@@ -21,6 +21,8 @@
                 :rules="[val => !!val || 'Campo obrigatório']" />
               <q-input filled v-model="formulario.email" label="E-mail" type="email" dense
                 :rules="[val => !!val || 'Campo obrigatório']" />
+              <q-input filled v-model="formulario.telefone" label="Telefone / WhatsApp" dense mask="(##) #####-####" />
+              <q-input filled v-model="formulario.endereco" label="Endereço" dense />
               <q-input filled v-model="formulario.senha" label="Senha" type="password" dense
                 :rules="[val => !!val || 'Campo obrigatório']" />
 
@@ -50,6 +52,8 @@ const formulario = reactive({
   cpf: '',
   data_nascimento: '',
   email: '',
+  telefone: '',
+  endereco: '',
   senha: ''
 })
 
@@ -71,6 +75,8 @@ const cadastrar = async () => {
       cpf: formulario.cpf,
       data_nascimento: formulario.data_nascimento,
       email: formulario.email,
+      telefone: formulario.telefone,
+      endereco: formulario.endereco,
       senha: formulario.senha
     })
 

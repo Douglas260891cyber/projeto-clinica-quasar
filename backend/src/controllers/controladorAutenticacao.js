@@ -4,7 +4,7 @@ import { criarUsuario, buscarUsuarioPorEmail, verificarSenha, buscarUsuarioPorId
 // Cadastra um novo usuário no sistema.
 export const cadastrarUsuario = async (requisicao, resposta) => {
   try {
-    const { nome, email, senha, cpf, data_nascimento } = requisicao.body;
+    const { nome, email, senha, cpf, data_nascimento, telefone, endereco } = requisicao.body;
 
     if (!nome || !email || !senha || !cpf || !data_nascimento) {
       return resposta.status(400).json({ mensagem: 'Nome, CPF, data de nascimento, e-mail e senha são obrigatórios.' });
@@ -15,7 +15,7 @@ export const cadastrarUsuario = async (requisicao, resposta) => {
       return resposta.status(409).json({ mensagem: 'Já existe um usuário com este e-mail.' });
     }
 
-    const usuario = await criarUsuario({ nome, email, senha, cpf, data_nascimento });
+    const usuario = await criarUsuario({ nome, email, senha, cpf, data_nascimento, telefone, endereco });
 
     return resposta.status(201).json({ mensagem: 'Usuário cadastrado com sucesso.', usuario });
   } catch (erro) {

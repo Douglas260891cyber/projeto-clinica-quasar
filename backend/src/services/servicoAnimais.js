@@ -31,7 +31,7 @@ export const atualizarAnimalPorId = async (id, { nome, especie, idade, descricao
         `UPDATE animais
          SET nome = $1, especie = $2, idade = $3, descricao = $4, raca = $5, peso = $6, foto_url = $7
          WHERE id = $8 RETURNING *`,
-        [nome, especie, idade || null, descricao || null, raca || null, peso || null, foto_url || null, id]
+        [nome, especie, idade ?? null, descricao || null, raca || null, peso ?? null, foto_url || null, id]
     );
     return resultado.rows[0] || null;
 };

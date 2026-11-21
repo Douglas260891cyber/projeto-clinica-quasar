@@ -71,9 +71,9 @@ export const inicializarBancoDeDados = async () => {
         nome VARCHAR(255) NOT NULL,
         especie VARCHAR(100) NOT NULL,
         idade INTEGER,
-        descricao TEXT,
         raca VARCHAR(100),
         peso NUMERIC(6, 2),
+        descricao TEXT,
         foto_url TEXT,
         usuario_id INTEGER REFERENCES usuarios(id),
         criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP

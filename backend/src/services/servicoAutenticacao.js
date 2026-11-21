@@ -3,12 +3,14 @@ import bcrypt from 'bcrypt';
 import { executarConsulta } from '../config/bancoDeDados.js';
 
 // Cria um novo usuário com senha criptografada no banco.
-export const criarUsuario = async ({ nome, email, senha, cpf, data_nascimento }) => {
+export const criarUsuario = async ({ nome, email, senha, cpf, data_nascimento, telefone, endereco }) => {
   const senhaHash = await bcrypt.hash(senha, 10);
 
   const resultado = await executarConsulta(
-    'INSERT INTO usuarios (nome, email, cpf, data_nascimento, senha_hash) VALUES ($1, $2, $3, $4, $5) RETURNING id, nome, email, cpf, data_nascimento',
-    [nome, email, cpf, data_nascimento, senhaHash]
+    `INSERT INTO usuarios (nome, email, cpf, data_nascimento, senha_hash, telefone, endereco)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
+     RETURNING id, nome, email, cpf, data_nascimento, telefone, endereco, criado_em`,
+    [nome, email, cpf, data_nascimento, senhaHash, telefone || null, endereco || null]
   );
 
   return resultado.rows[0];
