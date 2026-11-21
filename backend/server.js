@@ -12,7 +12,7 @@ const aplicativo = express();
 aplicativo.use(express.json());
 
 // Habilita o CORS para permitir requisições do frontend para a API.
-aplicativo.use((requisicao, resposta, proximo) => {
+/*aplicativo.use((requisicao, resposta, proximo) => {
   resposta.header('Access-Control-Allow-Origin', '*');
   resposta.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   resposta.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
@@ -21,6 +21,14 @@ aplicativo.use((requisicao, resposta, proximo) => {
   }
   proximo();
 });
+*/
+
+import cors from 'cors';
+aplicativo.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // Registra as rotas da API sob o prefixo /api.
 aplicativo.use('/api', rotas);
