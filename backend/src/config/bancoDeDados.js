@@ -7,13 +7,20 @@ const { Pool } = pkg;
 dotenv.config({ path: path.resolve(process.cwd(), 'backend/.env') });
 
 // Configurar a conexão com PostgreSQL usando variáveis de ambiente
-const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'petmarket',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres'
-});
+const pool = new Pool(
+  process.env.DATABASE_URL
+    ? {
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false }
+      }
+    : {
+        host: process.env.DB_HOST || 'localhost',
+        port: process.env.DB_PORT || 5432,
+        database: process.env.DB_NAME || 'petmarket',
+        user: process.env.DB_USER || 'postgres',
+        password: process.env.DB_PASSWORD || 'postgres'
+      }
+);
 
 // Função para executar queries no PostgreSQL
 export const executarConsulta = async (texto, parametros = []) => {
