@@ -1,3 +1,4 @@
+
 // Arquivo principal do backend. Inicializa o Express, configura as rotas e sobe o servidor.
 import express from 'express';
 import cors from 'cors';
@@ -10,6 +11,7 @@ dotenv.config({ path: path.resolve(process.cwd(), 'backend/.env') });
 
 const aplicativo = express();
 
+// Lista de origens permitidas.
 const origensPermitidas = (process.env.FRONTEND_URL || 'https://projeto-clinica-quasar-frontend.vercel.app,http://localhost:9000')
   .split(',')
   .map((origem) => origem.trim())
@@ -17,7 +19,15 @@ const origensPermitidas = (process.env.FRONTEND_URL || 'https://projeto-clinica-
 
 const configuracaoCors = {
   origin: (origem, callback) => {
-    if (!origem || origensPermitidas.includes(origem)) {
+    // Aceita o domínio principal e as URLs de preview do Vercel.
+    const dominioVercelPermitido =
+      /^https:\/\/projeto-clinica-quasar-frontend(?:-[a-z0-9-]+)?\.vercel\.app$/i.test(origem || '');
+
+    if (
+      !origem ||
+      origensPermitidas.includes(origem) ||
+      dominioVercelPermitido
+    ) {
       return callback(null, true);
     }
 
@@ -28,7 +38,7 @@ const configuracaoCors = {
   optionsSuccessStatus: 204,
 };
 
-// Trata a preflight antes do parser JSON e das rotas da API.
+// Trata as requisições antes de encaminhá-las às rotas.
 aplicativo.use(cors(configuracaoCors));
 aplicativo.options('*', cors(configuracaoCors));
 aplicativo.use(express.json());
@@ -53,11 +63,14 @@ const iniciarServidor = async () => {
     await testarConexao();
     console.log('Conexão com o banco de dados estabelecida.');
   } catch (erro) {
-    console.warn('Conexão com o banco indisponível. Servidor iniciado sem validação inicial.', erro.message);
+    console.warn(
+      'Conexão com o banco indisponível. Servidor iniciado sem validação inicial.',
+      erro.message
+    );
   }
 
   aplicativo.listen(porta, () => {
-    console.log(`Backend em execução em http://localhost:${porta}`);
+    console.log(`Backend em execução na porta ${porta}`);
   });
 };
 
