@@ -1,5 +1,6 @@
 // Arquivo principal do backend. Inicializa o Express, configura as rotas e sobe o servidor.
 import express from 'express';
+import cors from 'cors';
 import path from 'path';
 import dotenv from 'dotenv';
 import rotas from './src/routes/index.js';
@@ -9,26 +10,28 @@ dotenv.config({ path: path.resolve(process.cwd(), 'backend/.env') });
 
 const aplicativo = express();
 
-aplicativo.use(express.json());
+const origensPermitidas = (process.env.FRONTEND_URL || 'https://projeto-clinica-quasar-frontend.vercel.app,http://localhost:9000')
+  .split(',')
+  .map((origem) => origem.trim())
+  .filter(Boolean);
 
-// Habilita o CORS para permitir requisições do frontend para a API.
-/*aplicativo.use((requisicao, resposta, proximo) => {
-  resposta.header('Access-Control-Allow-Origin', '*');
-  resposta.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  resposta.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-  if (requisicao.method === 'OPTIONS') {
-    return resposta.sendStatus(204);
-  }
-  proximo();
-});
-*/
+const configuracaoCors = {
+  origin: (origem, callback) => {
+    if (!origem || origensPermitidas.includes(origem)) {
+      return callback(null, true);
+    }
 
-import cors from 'cors';
-aplicativo.use(cors({
-  origin: '*',
+    return callback(new Error(`Origem não permitida pelo CORS: ${origem}`));
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 204,
+};
+
+// Trata a preflight antes do parser JSON e das rotas da API.
+aplicativo.use(cors(configuracaoCors));
+aplicativo.options('*', cors(configuracaoCors));
+aplicativo.use(express.json());
 
 // Registra as rotas da API sob o prefixo /api.
 aplicativo.use('/api', rotas);
