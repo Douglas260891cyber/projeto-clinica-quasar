@@ -89,7 +89,7 @@ const entrar = async () => {
     })
 
     // A sessão só é criada depois que a API confirma e devolve o usuário autenticado.
-    salvarUsuarioAutenticado(dados.usuario)
+    salvarUsuarioAutenticado(dados.usuario, dados.token)
 
     Notify.create({
       message: 'Login realizado com sucesso!',

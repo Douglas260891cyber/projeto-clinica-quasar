@@ -8,12 +8,18 @@ const routes = [
     component: () => import('pages/PaginaCadastro.vue'),
   },
   {
+    path: '/cadastro-veterinario',
+    component: () => import('pages/PaginaCadastroVeterinario.vue'),
+    meta: { requiresAuth: true, nivelPerfil: 1 },
+  },
+  {
     path: '/',
     component: () => import('layouts/LayoutPrincipal.vue'),
     meta: { requiresAuth: true },
     children: [
       { path: 'dashboard', component: () => import('pages/PaginaPainel.vue') },
       { path: 'perfil', component: () => import('pages/PaginaPerfil.vue') },
+      { path: 'clinicas/nova', component: () => import('pages/PaginaCadastroClinica.vue'), meta: { nivelPerfil: 4 } },
       { path: 'pets', component: () => import('pages/PaginaAnimais.vue') },
       { path: 'pets/:id', component: () => import('pages/PaginaDetalhesAnimal.vue') },
       { path: 'agendamentos', component: () => import('pages/PaginaAgendamentos.vue') },

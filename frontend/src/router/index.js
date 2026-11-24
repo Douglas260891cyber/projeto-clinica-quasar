@@ -6,7 +6,7 @@ import {
   createWebHashHistory,
 } from 'vue-router'
 import routes from './routes'
-import { estaAutenticado } from 'src/services/autenticacao'
+import { estaAutenticado, obterUsuarioAutenticado } from 'src/services/autenticacao'
 
 export default defineRouter(function (/* { store, ssrContext } */) {
   const createHistory = process.env.SERVER
@@ -26,6 +26,9 @@ export default defineRouter(function (/* { store, ssrContext } */) {
   Router.beforeEach((to) => {
     if (to.meta.requiresAuth && !estaAutenticado()) {
       return { path: '/', query: { redirect: to.fullPath } }
+    }
+    if (to.matched.some((registro) => registro.meta.nivelPerfil === 1) && obterUsuarioAutenticado()?.nivel_perfil !== 1) {
+      return '/dashboard'
     }
   })
 

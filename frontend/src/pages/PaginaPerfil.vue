@@ -127,7 +127,7 @@ function aviso(mensagem, tipo = 'positive') { $q.notify({ message: mensagem, col
 async function carregarPerfil() {
   if (!usuarioSessao?.id) { router.replace('/'); return }
   try {
-    const [{ data }, respostaPets] = await Promise.all([api.get(`/autenticacao/usuarios/${usuarioSessao.id}`), api.get('/animais', { params: { usuario_id: usuarioSessao.id } }).catch(() => ({ data: [] }))])
+    const [{ data }, respostaPets] = await Promise.all([api.get(`/usuarios/${usuarioSessao.id}`), api.get('/animais', { params: { usuario_id: usuarioSessao.id } }).catch(() => ({ data: [] }))])
     Object.assign(perfil, data, { data_nascimento: data.data_nascimento?.slice(0, 10) || '' })
     totalPets.value = respostaPets.data.length
   } catch (e) { erro.value = e.response?.data?.mensagem || 'Não foi possível carregar o perfil.' } finally { carregando.value = false }
@@ -135,7 +135,7 @@ async function carregarPerfil() {
 async function salvarPerfil() {
   salvando.value = true
   try {
-    const { data } = await api.put(`/autenticacao/usuarios/${usuarioSessao.id}`, perfil)
+    const { data } = await api.put(`/usuarios/${usuarioSessao.id}`, perfil)
     Object.assign(perfil, data.usuario, { data_nascimento: data.usuario.data_nascimento?.slice(0, 10) || '' })
     salvarUsuarioAutenticado({ id: data.usuario.id, nome: data.usuario.nome, email: data.usuario.email })
     aviso(data.mensagem)
@@ -143,7 +143,7 @@ async function salvarPerfil() {
 }
 async function salvarSenha() {
   salvandoSenha.value = true
-  try { const { data } = await api.put(`/autenticacao/usuarios/${usuarioSessao.id}/senha`, senha); aviso(data.mensagem); dialogSenha.value = false; Object.assign(senha, { senhaAtual: '', novaSenha: '', confirmacao: '' }) } catch (e) { aviso(e.response?.data?.mensagem || 'Não foi possível alterar a senha.', 'negative') } finally { salvandoSenha.value = false }
+  try { const { data } = await api.put(`/usuarios/${usuarioSessao.id}/senha`, senha); aviso(data.mensagem); dialogSenha.value = false; Object.assign(senha, { senhaAtual: '', novaSenha: '', confirmacao: '' }) } catch (e) { aviso(e.response?.data?.mensagem || 'Não foi possível alterar a senha.', 'negative') } finally { salvandoSenha.value = false }
 }
 function sair() { limparUsuarioAutenticado(); router.replace('/') }
 onMounted(carregarPerfil)

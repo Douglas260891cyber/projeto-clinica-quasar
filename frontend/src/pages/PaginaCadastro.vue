@@ -23,8 +23,12 @@
                 :rules="[val => !!val || 'Campo obrigatório']" />
               <q-input filled v-model="formulario.telefone" label="Telefone / WhatsApp" dense mask="(##) #####-####" />
               <q-input filled v-model="formulario.endereco" label="Endereço" dense />
+              <q-select filled v-model="formulario.clinica_id" :options="opcoesClinicas" label="Clínica *" dense emit-value map-options
+                :rules="[val => !!val || 'Selecione uma clínica']" />
               <q-input filled v-model="formulario.senha" label="Senha" type="password" dense
-                :rules="[val => !!val || 'Campo obrigatório']" />
+                :rules="[val => val?.length >= 6 || 'Use ao menos 6 caracteres']" />
+              <q-input filled v-model="formulario.confirmar_senha" label="Confirmar senha" type="password" dense
+                :rules="[val => !!val || 'Confirme sua senha', val => val === formulario.senha || 'As senhas não coincidem']" />
 
               <q-btn label="Cadastrar" color="green-6" class="full-width" unelevated type="submit" :loading="carregando" />
               <q-btn flat class="full-width text-green-7" @click="irParaLogin">
@@ -40,13 +44,14 @@
 
 <script setup>
 // Página de cadastro do frontend. Coleta os dados do usuário e envia para o backend.
-import { reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Notify } from 'quasar'
 import { api } from 'src/services/clienteApi'
 
 const router = useRouter()
 const carregando = ref(false)
+const opcoesClinicas = ref([])
 const formulario = reactive({
   nome: '',
   cpf: '',
@@ -54,12 +59,23 @@ const formulario = reactive({
   email: '',
   telefone: '',
   endereco: '',
-  senha: ''
+  senha: '',
+  confirmar_senha: '',
+  clinica_id: null
+})
+
+onMounted(async () => {
+  try {
+    const { data } = await api.get('/clinicas')
+    opcoesClinicas.value = data.map((clinica) => ({ label: [clinica.nome, clinica.cidade, clinica.estado].filter(Boolean).join(' - '), value: clinica.id }))
+  } catch {
+    Notify.create({ message: 'Não foi possível carregar a lista de clínicas.', color: 'orange' })
+  }
 })
 
 // Envia os dados de cadastro para a API e redireciona para a tela de login.
 const cadastrar = async () => {
-  if (!formulario.nome || !formulario.cpf || !formulario.data_nascimento || !formulario.email || !formulario.senha) {
+  if (!formulario.nome || !formulario.cpf || !formulario.data_nascimento || !formulario.email || !formulario.senha || !formulario.confirmar_senha || !formulario.clinica_id) {
     Notify.create({
       message: 'Preencha todos os campos para continuar.',
       color: 'orange',
@@ -67,17 +83,23 @@ const cadastrar = async () => {
     })
     return
   }
+  if (formulario.senha !== formulario.confirmar_senha) {
+    Notify.create({ message: 'As senhas não coincidem.', color: 'orange', icon: 'warning' })
+    return
+  }
 
   carregando.value = true
   try {
-    await api.post('/autenticacao/cadastro', {
+    await api.post('/usuarios/cadastro', {
       nome: formulario.nome,
       cpf: formulario.cpf,
       data_nascimento: formulario.data_nascimento,
       email: formulario.email,
       telefone: formulario.telefone,
       endereco: formulario.endereco,
-      senha: formulario.senha
+      senha: formulario.senha,
+      confirmar_senha: formulario.confirmar_senha,
+      clinica_id: formulario.clinica_id
     })
 
     Notify.create({

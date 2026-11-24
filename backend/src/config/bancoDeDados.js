@@ -60,7 +60,30 @@ export const inicializarBancoDeDados = async () => {
         senha_hash VARCHAR(255) NOT NULL,
         telefone VARCHAR(20),
         endereco TEXT,
+        tipo VARCHAR(20) NOT NULL DEFAULT 'tutor',
+        nivel_perfil SMALLINT NOT NULL DEFAULT 3 CONSTRAINT usuarios_nivel_perfil_valido CHECK (nivel_perfil IN (1, 2, 3, 4)),
+        crmv VARCHAR(30),
+        especialidade VARCHAR(120),
         criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await executarConsulta(`
+      CREATE TABLE IF NOT EXISTS clinicas (
+        id SERIAL PRIMARY KEY,
+        nome VARCHAR(255) NOT NULL,
+        cnpj VARCHAR(18) UNIQUE,
+        email VARCHAR(255),
+        telefone VARCHAR(20),
+        endereco TEXT,
+        cidade VARCHAR(120),
+        estado VARCHAR(2),
+        criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE TABLE IF NOT EXISTS sessoes_autenticacao (
+        token_hash CHAR(64) PRIMARY KEY,
+        usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+        expira_em TIMESTAMP NOT NULL
       );
     `);
 
@@ -111,6 +134,8 @@ export const inicializarBancoDeDados = async () => {
         porte VARCHAR(30),
         servico_outro VARCHAR(255),
         usuario_id INTEGER REFERENCES usuarios(id),
+        clinica_id INTEGER REFERENCES clinicas(id),
+        profissional_id INTEGER REFERENCES usuarios(id),
         origem_vacina_id INTEGER UNIQUE REFERENCES vacinas(id),
         criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
@@ -134,8 +159,42 @@ export const inicializarBancoDeDados = async () => {
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'animais' AND column_name = 'usuario_id') THEN ALTER TABLE animais ADD COLUMN usuario_id INTEGER REFERENCES usuarios(id); END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'usuarios' AND column_name = 'telefone') THEN ALTER TABLE usuarios ADD COLUMN telefone VARCHAR(20); END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'usuarios' AND column_name = 'endereco') THEN ALTER TABLE usuarios ADD COLUMN endereco TEXT; END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'usuarios' AND column_name = 'tipo') THEN ALTER TABLE usuarios ADD COLUMN tipo VARCHAR(20) NOT NULL DEFAULT 'tutor'; END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'usuarios' AND column_name = 'nivel_perfil') THEN
+          ALTER TABLE usuarios ADD COLUMN nivel_perfil SMALLINT NOT NULL DEFAULT 3;
+        ELSE
+          IF (SELECT data_type FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'usuarios' AND column_name = 'nivel_perfil') <> 'smallint' THEN
+            ALTER TABLE usuarios ALTER COLUMN nivel_perfil DROP DEFAULT;
+            ALTER TABLE usuarios ALTER COLUMN nivel_perfil TYPE SMALLINT USING (
+              CASE nivel_perfil::TEXT
+                WHEN 'administrador' THEN 1
+                WHEN 'profissional' THEN 2
+                WHEN 'cliente' THEN 3
+                WHEN '1' THEN 1
+                WHEN '2' THEN 2
+                WHEN '3' THEN 3
+                ELSE 3
+              END
+            );
+            ALTER TABLE usuarios ALTER COLUMN nivel_perfil SET DEFAULT 3;
+            ALTER TABLE usuarios ALTER COLUMN nivel_perfil SET NOT NULL;
+          END IF;
+        END IF;
+        ALTER TABLE usuarios DROP CONSTRAINT IF EXISTS usuarios_nivel_perfil_valido;
+        ALTER TABLE usuarios ADD CONSTRAINT usuarios_nivel_perfil_valido CHECK (nivel_perfil IN (1, 2, 3, 4));
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'usuarios' AND column_name = 'crmv') THEN ALTER TABLE usuarios ADD COLUMN crmv VARCHAR(30); END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'usuarios' AND column_name = 'especialidade') THEN ALTER TABLE usuarios ADD COLUMN especialidade VARCHAR(120); END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'usuarios' AND column_name = 'clinica_id') THEN ALTER TABLE usuarios ADD COLUMN clinica_id INTEGER REFERENCES clinicas(id); END IF;
+        ALTER TABLE usuarios ALTER COLUMN clinica_id DROP NOT NULL;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'usuarios_clinica_obrigatoria_por_perfil' AND conrelid = 'public.usuarios'::regclass) THEN
+          ALTER TABLE usuarios ADD CONSTRAINT usuarios_clinica_obrigatoria_por_perfil
+            CHECK (nivel_perfil = 4 OR clinica_id IS NOT NULL) NOT VALID;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'agendamentos' AND column_name = 'clinica_id') THEN ALTER TABLE agendamentos ADD COLUMN clinica_id INTEGER REFERENCES clinicas(id); END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'agendamentos' AND column_name = 'profissional_id') THEN ALTER TABLE agendamentos ADD COLUMN profissional_id INTEGER REFERENCES usuarios(id); END IF;
       END $$;
     `);
+    await executarConsulta("CREATE UNIQUE INDEX IF NOT EXISTS usuarios_crmv_unico ON usuarios (LOWER(crmv)) WHERE crmv IS NOT NULL");
 
     // Preserva a agenda de vacinas criada nas versões anteriores.
     await executarConsulta(`

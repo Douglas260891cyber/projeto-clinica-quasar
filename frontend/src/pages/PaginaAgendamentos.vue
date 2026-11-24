@@ -48,35 +48,35 @@
                   <q-input v-model="form.horario" outlined type="time" label="Horário" />
                 </div>
                 <div class="col-12">
-                  <q-select v-model="form.local" outlined label="Local *" :options="locais" :rules="[validarObrigatorio]" />
+                  <q-select v-model="form.local" outlined label="Clínica *" :options="opcoesClinicas" disable :rules="[validarObrigatorio]" />
                 </div>
               </div>
 
               <div v-if="form.tipo === 'vacina'" class="service-fields">
                 <div class="text-subtitle1 text-green-9">Dados da vacinação</div>
                 <q-input v-model="form.vacina" outlined label="Vacina / imunizante" />
-                <q-select v-model="form.profissional" outlined label="Veterinário(a) responsável"
-                  :options="profissionais" />
+                <q-select v-model="form.profissional_id" outlined label="Veterinário(a) responsável"
+                  :options="profissionais" emit-value map-options clearable />
               </div>
 
               <div v-else-if="form.tipo === 'consulta'" class="service-fields">
                 <div class="text-subtitle1 text-green-9">Dados da consulta</div>
                 <q-input v-model="form.motivo_consulta" outlined type="textarea" label="Motivo da consulta" />
-                <q-select v-model="form.profissional" outlined label="Veterinário(a)" :options="profissionais" />
+                <q-select v-model="form.profissional_id" outlined label="Veterinário(a)" :options="profissionais" emit-value map-options clearable />
               </div>
 
               <div v-else-if="form.tipo === 'banho' || form.tipo === 'tosa'" class="service-fields">
                 <div class="text-subtitle1 text-green-9">Dados do serviço</div>
                 <q-select v-model="form.porte" outlined label="Porte do pet"
                   :options="['Pequeno', 'Médio', 'Grande']" />
-                <q-input v-model="form.profissional" outlined label="Profissional (opcional)" />
+                <q-select v-model="form.profissional_id" outlined label="Veterinário(a) (opcional)" :options="profissionais" emit-value map-options clearable />
                 <q-input v-model="form.observacao" outlined type="textarea" label="Preferências do serviço" />
               </div>
 
               <div v-else class="service-fields">
                 <div class="text-subtitle1 text-green-9">Outros serviços</div>
                 <q-input v-model="form.servico_outro" outlined label="Qual serviço?" :rules="[validarObrigatorio]" />
-                <q-input v-model="form.profissional" outlined label="Profissional (opcional)" />
+                <q-select v-model="form.profissional_id" outlined label="Veterinário(a) (opcional)" :options="profissionais" emit-value map-options clearable />
               </div>
 
               <q-input v-model="form.observacao" outlined type="textarea" label="Observações gerais" />
@@ -162,8 +162,8 @@ const tipos = [
   { label: 'Outros', value: 'outro', icon: 'more_horiz' },
 ]
 
-const locais = ['Clínica Central', 'Unidade Norte', 'Unidade Sul', 'HospVet Municipal', 'Posto Veterinário São José']
-const profissionais = ['Dr. Ricardo Silva', 'Dra. Ana Paula Mendes', 'Dr. Júlio Carrara', 'Dra. Beatriz Nunes', 'Dr. Marcos Torres']
+const profissionais = ref([])
+const opcoesClinicas = ref([])
 const opcoesFiltroTipo = computed(() => [{ label: 'Todos', value: 'todos' }, ...tipos.map((tipo) => ({ label: tipo.label, value: tipo.value }))])
 const opcoesFiltroStatus = [
   { label: 'Todos', value: 'todos' },
@@ -183,8 +183,10 @@ const form = ref({
   tipo: 'consulta',
   data: '',
   horario: '',
-  local: '',
+  local: usuario?.clinica_nome || '',
   profissional: '',
+  profissional_id: null,
+  clinica_id: usuario?.clinica_id || null,
   observacao: '',
   vacina: '',
   motivo_consulta: '',
@@ -208,6 +210,7 @@ const agendamentosFiltrados = computed(() => {
 const validarObrigatorio = (valor) => !!valor || 'Campo obrigatório'
 
 onMounted(async () => {
+  await carregarClinicaEVeterinarios()
   await carregarAnimais()
   await carregarAgendamentos()
 
@@ -220,6 +223,21 @@ onMounted(async () => {
     await carregarAgendamento(idItemEmEdicao.value)
   }
 })
+
+async function carregarClinicaEVeterinarios() {
+  try {
+    const { data } = await api.get('/clinicas/minha')
+    opcoesClinicas.value = [data.nome]
+    form.value.local = data.nome
+    form.value.clinica_id = data.id
+    profissionais.value = data.veterinarios.map((veterinario) => ({
+      label: `${veterinario.nome}${veterinario.especialidade ? ` — ${veterinario.especialidade}` : ''}`,
+      value: veterinario.id
+    }))
+  } catch (erro) {
+    $q.notify({ type: 'negative', message: erro.response?.data?.mensagem || 'Não foi possível carregar a clínica e os veterinários.' })
+  }
+}
 
 async function carregarAnimais() {
   try {
@@ -256,8 +274,10 @@ function limparFormulario() {
     tipo: route.query.tipo && tipos.some((tipo) => tipo.value === route.query.tipo) ? String(route.query.tipo) : 'consulta',
     data: '',
     horario: '',
-    local: '',
+    local: usuario?.clinica_nome || '',
     profissional: '',
+    profissional_id: null,
+    clinica_id: usuario?.clinica_id || null,
     observacao: '',
     vacina: '',
     motivo_consulta: '',
@@ -270,7 +290,7 @@ function limparFormulario() {
 async function salvar() {
   salvando.value = true
   try {
-    const payload = { ...form.value, usuario_id: usuario?.id }
+    const payload = { ...form.value, usuario_id: usuario?.id, clinica_id: usuario?.clinica_id }
 
     if (modoDeEdicao.value) {
       await api.put(`/agendamentos/${idItemEmEdicao.value}`, payload)

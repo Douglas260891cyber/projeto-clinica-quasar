@@ -1,6 +1,6 @@
 import { executarConsulta } from '../config/bancoDeDados.js';
 
-const campos = ['pet', 'tipo', 'data', 'horario', 'local', 'profissional', 'observacao', 'vacina', 'motivo_consulta', 'porte', 'servico_outro'];
+const campos = ['pet', 'tipo', 'data', 'horario', 'local', 'profissional', 'profissional_id', 'clinica_id', 'observacao', 'vacina', 'motivo_consulta', 'porte', 'servico_outro'];
 
 export const listarAgendamentos = async (usuarioId) => {
   const resultado = usuarioId
@@ -21,7 +21,7 @@ function valoresDoAgendamento(dados) {
 export const criarAgendamento = async (dados) => {
   const resultado = await executarConsulta(
     `INSERT INTO agendamentos (${campos.join(', ')}, usuario_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
+     VALUES (${campos.map((_, indice) => `$${indice + 1}`).join(', ')}, $${campos.length + 1}) RETURNING *`,
     [...valoresDoAgendamento(dados), dados.usuario_id || null]
   );
   return resultado.rows[0];
@@ -30,7 +30,7 @@ export const criarAgendamento = async (dados) => {
 export const atualizarAgendamentoPorId = async (id, dados) => {
   const resultado = await executarConsulta(
     `UPDATE agendamentos SET ${campos.map((campo, indice) => `${campo} = $${indice + 1}`).join(', ')}
-     WHERE id = $12 RETURNING *`,
+     WHERE id = $${campos.length + 1} RETURNING *`,
     [...valoresDoAgendamento(dados), id]
   );
   return resultado.rows[0] || null;

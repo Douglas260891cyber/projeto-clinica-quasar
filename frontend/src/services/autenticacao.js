@@ -2,8 +2,16 @@
 const CHAVE_SESSAO = 'clinica-usuario'
 
 // Salva somente os dados públicos retornados pela API; a senha nunca é armazenada.
-export const salvarUsuarioAutenticado = (usuario) => {
-  localStorage.setItem(CHAVE_SESSAO, JSON.stringify(usuario))
+export const salvarUsuarioAutenticado = (usuario, token) => {
+  const sessaoAnterior = obterUsuarioAutenticado()
+  localStorage.setItem(CHAVE_SESSAO, JSON.stringify({
+    ...usuario,
+    tipo: usuario.tipo ?? sessaoAnterior?.tipo,
+    nivel_perfil: usuario.nivel_perfil ?? sessaoAnterior?.nivel_perfil,
+    clinica_id: usuario.clinica_id ?? sessaoAnterior?.clinica_id,
+    clinica_nome: usuario.clinica_nome ?? sessaoAnterior?.clinica_nome,
+    token: token || sessaoAnterior?.token
+  }))
 }
 
 // Informa ao roteador se existe uma sessão criada após um login válido.

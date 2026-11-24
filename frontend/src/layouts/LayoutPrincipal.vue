@@ -36,6 +36,14 @@
             <q-item-section avatar><q-icon name="person" /></q-item-section>
             <q-item-section>Perfil</q-item-section>
           </q-item>
+          <q-item v-if="usuario.nivel_perfil === 4" clickable v-ripple to="/clinicas/nova" active-class="menu-active" :active="$route.path === '/clinicas/nova'">
+            <q-item-section avatar><q-icon name="add_business" /></q-item-section>
+            <q-item-section>Cadastrar clínica</q-item-section>
+          </q-item>
+          <q-item v-if="usuario.nivel_perfil === 1" clickable v-ripple to="/cadastro-veterinario" active-class="menu-active" :active="$route.path === '/cadastro-veterinario'">
+            <q-item-section avatar><q-icon name="medical_services" /></q-item-section>
+            <q-item-section>Cadastrar veterinário</q-item-section>
+          </q-item>
         </q-list>
       </div>
     </q-drawer>
